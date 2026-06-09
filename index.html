@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="Portal principal de laboratorios de explotación de vulnerabilidades - Buffer Overflow, ROP Chain y Privilege Escalation">
+    <meta name="author" content="ExploitLab-BOF">
+    <title>ExploitLabs | Portal de Laboratorios de Seguridad Ofensiva</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+
+
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #0a0c0f;
+        color: #e0e0e0;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        scroll-behavior: smooth;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #1a1d24;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #00e5ff;
+        border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #00b8d4;
+    }
+
+    /* Estilos para menú desplegable */
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: rgba(10, 12, 15, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #00e5ff;
+        padding: 0.5rem 2rem;
+        z-index: 1000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        list-style: none;
+        align-items: center;
+    }
+
+    .nav-item {
+        position: relative;
+    }
+
+    .nav-link {
+        color: #e0e0e0;
+        text-decoration: none;
+        transition: color 0.3s;
+        font-weight: 500;
+        display: inline-block;
+        padding: 0.5rem 0;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .nav-link i {
+        margin-right: 4px;
+    }
+
+    .nav-link:hover {
+        color: #00e5ff;
+    }
+
+    /* Submenú desplegable */
+    .submenu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: #111317;
+        border: 1px solid #00e5ff;
+        border-radius: 12px;
+        min-width: 220px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        backdrop-filter: blur(5px);
+    }
+
+    .nav-item:hover .submenu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .submenu a {
+        display: block;
+        padding: 0.7rem 1.2rem;
+        color: #e0e0e0;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        border-bottom: 1px solid #1f2329;
+    }
+
+    .submenu a:last-child {
+        border-bottom: none;
+    }
+
+    .submenu a:hover {
+        background: #1a1d24;
+        color: #00e5ff;
+        padding-left: 1.5rem;
+    }
+
+    /* Enlace externo estilo botón */
+    .nav-link-external {
+        background: #1a1d24;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        border: 1px solid #00e5ff;
+    }
+
+    .nav-link-external:hover {
+        background: #00e5ff;
+        color: #0a0c0f !important;
+    }
+
+    /* Nuevo estilo para el logo con imagen de 60px optimizado */
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+    
+    .logo img {
+        height: 120px;
+        width: auto;
+        display: block;
+        filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.3));
+        transition: transform 0.3s ease;
+    }
+    
+    .logo img:hover {
+        transform: scale(1.05);
+    }
+    
+    .logo-text {
+        font-size: 2.3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #00e5ff, #00b8d4);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: 1px;
+        white-space: nowrap;
+    }
+
+    .main-content p, 
+    .main-content .section-card p,
+    .main-content .alert p {
+        text-align: justify;
+    }
+
+    /* Estilos de la tarjeta del libro */
+    .book-card {
+        background: linear-gradient(135deg, #111317 0%, #0d0f14 100%);
+        border: 1px solid #00e5ff;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .book-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 229, 255, 0.15);
+    }
+
+    .book-icon {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .book-icon i {
+        font-size: 3rem;
+        color: #00e5ff;
+    }
+
+    .book-card h3 {
+        color: #00e5ff;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        border-left: none;
+        padding-left: 0;
+    }
+
+    .book-card h4 {
+        color: #00e5ff;
+        font-size: 1rem;
+        margin: 1rem 0 0.5rem 0;
+    }
+
+    .book-card p {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: #c0c0c0;
+        margin-bottom: 0.75rem;
+    }
+
+    .book-card ul {
+        margin: 0.5rem 0 0.5rem 1rem;
+        list-style: none;
+    }
+
+    .book-card ul li {
+        font-size: 0.8rem;
+        color: #b0b0b0;
+        margin-bottom: 0.25rem;
+    }
+
+    .book-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #00e5ff, transparent);
+        margin: 1rem 0;
+    }
+
+    .book-conclusion {
+        font-style: italic;
+        font-size: 1rem;
+        background: rgba(0, 229, 255, 0.1);
+        padding: 0.75rem;
+        border-radius: 12px;
+    }
+
+    .book-action {
+        text-align: center;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #1a1d24;
+        border-radius: 30px;
+        color: #00e5ff;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid #00e5ff;
+        transition: all 0.3s;
+    }
+
+    .book-action:hover {
+        background: #00e5ff;
+        color: #0a0c0f;
+        cursor: pointer;
+    }
+
+    .section-card p {
+        text-align: justify;
+    }
+
+    .hero {
+        margin-top: 80px;
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, #0f1419 0%, #0a0c0f 100%);
+        border-bottom: 2px solid #00e5ff;
+        text-align: center;
+    }
+
+    .hero h1 {
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+        font-weight: 800;
+    }
+
+    .hero h1 span {
+        color: #00e5ff;
+        font-family: 'Source Code Pro', monospace;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+        max-width: 800px;
+        margin: 0 auto;
+        color: #b0b0b0;
+    }
+
+    .badge-container {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        padding: 0.4rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: #1a1d24;
+        color: #00e5ff;
+        border: 1px solid #00e5ff;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .section-card {
+        background: #111317;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #1f2329;
+        transition: transform 0.2s, border-color 0.3s;
+    }
+
+    .section-card:hover {
+        border-color: #00e5ff;
+        transform: translateY(-2px);
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-left: 4px solid #00e5ff;
+        padding-left: 1rem;
+    }
+
+    .section-title i {
+        color: #00e5ff;
+        font-size: 1.5rem;
+    }
+
+    pre {
+        background: #0a0c0f;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        overflow-x: auto;
+        border: 1px solid #1f2329;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.85rem;
+        position: relative;
+    }
+
+    code {
+        font-family: 'Source Code Pro', monospace;
+    }
+
+    .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #00e5ff;
+        border: none;
+        color: #0a0c0f;
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: bold;
+        transition: background 0.3s;
+        z-index: 10;
+    }
+
+    .copy-btn:hover {
+        background: #00b8d4;
+    }
+
+    .lab-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .lab-card {
+        background: #0a0c0f;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #1f2329;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #e0e0e0;
+        display: block;
+    }
+
+    .lab-card:hover {
+        transform: translateY(-5px);
+        border-color: #00e5ff;
+        box-shadow: 0 10px 30px rgba(0, 229, 255, 0.2);
+    }
+
+    .lab-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #00e5ff;
+    }
+
+    .lab-card .lab-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: #1a1d24;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        margin: 0.5rem 0;
+        color: #00e5ff;
+        border: 1px solid #00e5ff;
+    }
+
+    .lab-card p {
+        color: #b0b0b0;
+        margin-top: 0.5rem;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+    }
+
+    .data-table th, .data-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #1f2329;
+    }
+
+    .data-table th {
+        color: #00e5ff;
+        font-weight: 600;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        border-left: 4px solid;
+    }
+
+    .alert-warning {
+        background: rgba(241, 196, 15, 0.1);
+        border-left-color: #f1c40f;
+        color: #f1c40f;
+    }
+
+    .alert-success {
+        background: rgba(46, 204, 113, 0.1);
+        border-left-color: #2ecc71;
+        color: #2ecc71;
+    }
+
+    .alert-danger {
+        background: rgba(231, 76, 60, 0.1);
+        border-left-color: #e74c3c;
+        color: #e74c3c;
+    }
+
+    .alert-info {
+        background: rgba(0, 229, 255, 0.1);
+        border-left-color: #00e5ff;
+        color: #00e5ff;
+    }
+
+    .terminal {
+        background: #000000;
+        color: #00e5ff;
+        padding: 1.5rem;
+        border-radius: 12px;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.85rem;
+        margin: 1.5rem 0;
+        border: 1px solid #00e5ff;
+    }
+
+    .terminal-prompt {
+        color: #00e5ff;
+    }
+
+    .terminal-output {
+        color: #e0e0e0;
+        margin-left: 1rem;
+    }
+
+    .resource-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .resource-card {
+        background: #0a0c0f;
+        padding: 1rem;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid #1f2329;
+    }
+
+    .resource-card i {
+        font-size: 2rem;
+        color: #00e5ff;
+        margin-bottom: 0.5rem;
+    }
+
+    .footer {
+        background: #0a0c0f;
+        border-top: 1px solid #1f2329;
+        padding: 2rem;
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    .nav-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .nav-btn {
+        background: #1a1d24;
+        border: 1px solid #00e5ff;
+        color: #00e5ff;
+        padding: 0.5rem 1.5rem;
+        border-radius: 30px;
+        text-decoration: none;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+
+    .nav-btn:hover {
+        background: #00e5ff;
+        color: #0a0c0f;
+    }
+
+    .book-gif {
+        text-align: center;
+        margin: 1rem 0;
+    }
+
+    .book-gif img {
+        width: 100%;
+        max-width: 180px;
+        height: auto;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 229, 255, 0.5);
+        transition: transform 0.3s ease;
+    }
+
+    .book-gif img:hover {
+        transform: scale(1.05);
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .nav-links {
+            gap: 1rem;
+        }
+        .nav-link {
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            gap: 0.8rem;
+            padding: 0.8rem;
+        }
+        .hero h1 {
+            font-size: 1.8rem;
+        }
+        .section-title {
+            font-size: 1.3rem;
+        }
+        .container {
+            padding: 1rem;
+        }
+        .lab-grid {
+            grid-template-columns: 1fr;
+        }
+        .nav-links {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+        .submenu {
+            position: static;
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+            display: none;
+            margin-top: 0.5rem;
+            background: #0a0c0f;
+        }
+        .nav-item.active .submenu {
+            display: block;
+        }
+        .logo img {
+            height: 45px;
+        }
+        .logo-text {
+            font-size: 1rem;
+        }
+        #inicio.section-card {
+            margin-top: 100px;
+        }
+        .imroot-title {
+            font-size: 1.8rem !important;
+        }
+        .imroot-content {
+            padding: 1rem !important;
+        }
+    }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">
+        <img src="Logo.png" alt="Logo">
+        <span class="logo-text">I'm root</span>
+    </div>
+    <ul class="nav-links">
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-home"></i> Inicio <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="index.html"><i class="fas fa-house-user"></i> I'm root</a>
+                <a href="#maquina-virtual"><i class="fas fa-desktop"></i> Máquina virtual CTF</a>
+                <a href="#laboratorios"><i class="fas fa-flask"></i> Laboratorios</a>
+                <a href="#libro"><i class="fas fa-book"></i> Libro</a>
+                <a href="#curso"><i class="fas fa-chalkboard-user"></i> Curso</a>
+                <a href="#autor"><i class="fas fa-user-tie"></i> Sobre el autor</a>
+            </div>
+        </li>
+        
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-flask"></i> Lab 1 <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="Lab_1.html"><i class="fas fa-bullseye"></i> Objetivo</a>
+                <a href="Lab_1.html#preparacion"><i class="fas fa-tools"></i> Preparación</a>
+                <a href="Lab_1.html#codigo"><i class="fas fa-code"></i> Código fuente</a>
+                <a href="Lab_1.html#explotacion"><i class="fas fa-bug"></i> Explotación</a>
+                <a href="Lab_1.html#recursos"><i class="fas fa-chart-line"></i> Recursos</a>
+            </div>
+        </li>
+
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-flask"></i> Lab 2 <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="Lab_2.html"><i class="fas fa-bullseye"></i> Objetivo</a>
+                <a href="Lab_2.html#preparacion"><i class="fas fa-tools"></i> Preparación</a>
+                <a href="Lab_2.html#codigo"><i class="fas fa-code"></i> Código fuente</a>
+                <a href="Lab_2.html#explotacion"><i class="fas fa-bug"></i> Explotación</a>
+                <a href="Lab_2.html#herramientas"><i class="fas fa-chart-line"></i> Recursos</a>
+            </div>
+        </li>
+
+        <li class="nav-item">
+            <a href="get_digital_only.html" class="nav-link nav-link-external"><i class="fas fa-shopping-cart"></i> Adquirir el libro</a>
+        </li>
+    </ul>
+</nav>
+<br><br>
+<div id="inicio" class="section-card" style="margin-top: 80px;">
+    <div class="imroot-header-wrapper" style="margin-bottom: 2rem;">
+        <div class="imroot-premium-header">
+            <div class="imroot-glow-effect"></div>
+            <div class="imroot-content">
+                <div class="imroot-brand">
+                    <div class="imroot-icon-wrapper">
+                        <div class="imroot-icon">⨠</div>
+                    </div>
+                    <div class="imroot-title-wrapper">
+                        <h1 class="imroot-title">
+                            BOF - Exploit <span class="imroot-title-highlight">Labs</span>
+                        </h1>
+                        <div class="badge-container">
+                            <span class="badge"><i class="fas fa-microchip"></i> x64</span>
+                            <span class="badge"><i class="fas fa-shield-alt"></i> ASLR / DEP / NX</span>
+                            <span class="badge"><i class="fas fa-link"></i> ROP Chain</span>
+                            <span class="badge"><i class="fas fa-crown"></i> Privilege Escalation</span>
+                            <span class="badge"><i class="fas fa-network-wired"></i> Reverse Shell</span>
+                        </div>
+                        <p class="imroot-description">Laboratorios prácticos de explotación de vulnerabilidades en arquitecturas x64</p>
+                    </div>
+                </div>
+            </div>
+            <div class="imroot-terminal-bar">
+                <span class="imroot-terminal-text">❯ root@imroot:~# <span class="imroot-blink">█</span></span>
+                <span class="imroot-badge">ROOT SESSION ACTIVE</span>
+            </div>
+            <div class="imroot-noise"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .imroot-header-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0;
+    }
+    .imroot-premium-header {
+        position: relative;
+        background: linear-gradient(135deg, rgba(10, 12, 15, 0.95) 0%, rgba(6, 8, 10, 0.98) 100%);
+        backdrop-filter: blur(20px);
+        border-radius: 28px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 229, 255, 0.3);
+        box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0, 229, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    .imroot-premium-header:hover {
+        border-color: rgba(0, 229, 255, 0.7);
+        box-shadow: 0 30px 55px -15px rgba(0, 229, 255, 0.25), 0 0 0 2px rgba(0, 229, 255, 0.2);
+        transform: translateY(-2px);
+    }
+    .imroot-glow-effect {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.08), transparent);
+        transition: left 0.8s ease;
+        pointer-events: none;
+    }
+    .imroot-premium-header:hover .imroot-glow-effect {
+        left: 100%;
+    }
+    .imroot-content {
+        padding: 2rem 2.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+    .imroot-brand {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .imroot-icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+    .imroot-icon {
+        font-size: 3.2rem;
+        font-weight: 900;
+        color: #00e5ff;
+        text-shadow: 0 0 10px rgba(0, 229, 255, 0.5), 0 0 20px rgba(0, 229, 255, 0.3);
+        animation: imrootPulse 2s infinite;
+        font-family: monospace;
+        line-height: 1;
+    }
+    @keyframes imrootPulse {
+        0%, 100% { opacity: 1; text-shadow: 0 0 5px #00e5ff; }
+        50% { opacity: 0.85; text-shadow: 0 0 15px #00e5ff, 0 0 25px #00e5ff; }
+    }
+    .imroot-title-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .imroot-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin: 0;
+        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: -0.5px;
+    }
+    .imroot-title-highlight {
+        background: linear-gradient(135deg, #00e5ff 0%, #00b8d4 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+    }
+    .imroot-description {
+        text-align: center;
+        color: #b0b0b0;
+        font-size: 0.95rem;
+        margin-top: 0.5rem;
+        max-width: 700px;
+    }
+    .imroot-terminal-bar {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 0.75rem 2rem;
+        border-top: 1px solid rgba(0, 229, 255, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.8rem;
+    }
+    .imroot-terminal-text {
+        color: #00e5ff;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    @keyframes imrootBlink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+    .imroot-blink {
+        animation: imrootBlink 1s step-end infinite;
+        font-weight: bold;
+    }
+    .imroot-badge {
+        background: linear-gradient(135deg, #00e5ff20 0%, #00b8d410 100%);
+        padding: 0.25rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #00e5ff;
+        border: 1px solid #00e5ff40;
+        text-transform: uppercase;
+    }
+    .imroot-noise {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(0deg, rgba(0, 229, 255, 0.02) 0px, rgba(0, 229, 255, 0.02) 2px, transparent 2px, transparent 6px);
+        pointer-events: none;
+        border-radius: inherit;
+        z-index: 0;
+    }
+    @media (max-width: 768px) {
+        .imroot-content { padding: 1rem; }
+        .imroot-brand { flex-direction: column; gap: 0.5rem; }
+        .imroot-icon { font-size: 2rem; }
+        .imroot-title { font-size: 1.5rem !important; }
+        .imroot-description { font-size: 0.8rem; }
+        .imroot-terminal-bar { flex-direction: column; text-align: center; }
+        .badge-container {
+            margin-top: 0.5rem;
+        }
+        .badge {
+            font-size: 0.65rem;
+            padding: 0.3rem 0.7rem;
+        }
+    }
+</style>
+
+
+        <!-- Contexto / Introducción -->
+        <div id="contexto" class="section-card">
+            <h2 class="section-title"><i class="fas fa-globe"></i> Persistencia de las vulnerabilidades de memoria</h2>
+	     <p style="text-align: justify;">En el entorno actual de la ciberseguridad, con frecuencia se publican recomendaciones para abandonar el desarrollo de sistemas y aplicaciones en lenguajes como C y C++, promoviendo en su lugar el uso de lenguajes considerados "más seguros" (<a href="https://www.cpomagazine.com/cyber-security/new-cisa-nsa-joint-report-reiterates-call-for-memory-safe-languages/" target="_blank" style="color: #00e5ff;">CPO Magazine, 2025</a>). Sin embargo, una parte significativa de la infraestructura tecnológica moderna (incluidos los núcleos de sistemas operativos) continúa siendo desarrollado en ensamblador, C y C++. Tanto Windows como Linux se basan en estos lenguajes, por lo que el estudio de las vulnerabilidades asociadas a ellos sigue siendo altamente relevante en la actualidad.</p>
+
+
+            <div class="alert alert-warning">
+                <i class="fas fa-bug"></i>
+                <strong>CVE-2025-32756:</strong> Como ejemplo reciente, puede citarse la vulnerabilidad <a href="https://nvd.nist.gov/vuln/detail/CVE-2025-32756" target="_blank" style="color: #00e5ff;">CVE-2025-32756</a>, descubierta en mayo de 2025, la cual afecta a múltiples productos de Fortinet y permite la ejecución remota de código por parte de actores maliciosos. Dicha vulnerabilidad se encuentra relacionada con desbordamientos de búfer basados en la pila.
+            </div>
+        </div>
+
+        <!-- Máquina Virtual CTF -->
+        <div id="maquina-virtual" class="section-card">
+            <h2 class="section-title"><i class="fas fa-desktop"></i> Máquina Virtual CTF</h2>
+            <div style="text-align: center;">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;"><i class="fas fa-user-shield" style="color: #00e5ff;"></i> ¿Listo para poner a prueba tus habilidades?</p>
+                <p>Si ya tienes experiencia resolviendo máquinas CTF, puedes descargar directamente la siguiente máquina virtual</p>
+                <div style="display: flex; justify-content: center; margin: 2rem 0;">
+                    <div class="lab-card" style="max-width: 500px; background: linear-gradient(135deg, #00e5ff08 0%, #111317 100%); border: 1px solid #00e5ff40;">
+                        <div style="position: relative;">
+                            <span style="position: absolute; top: -10px; right: -10px; background: #00e5ff; color: #0a0c0f; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: bold;"><i class="fas fa-download"></i> PREMIUM</span>
+                            <h3><i class="fas fa-user-secret"></i> Máquina Virtual CTF</h3>
+                            <span class="lab-badge">Descarga Directa</span>
+                            <span class="lab-badge" style="background: #00e5ff20;">x64</span>
+                            <p style="margin-top: 1rem;">Laboratorio completo listo para importar en VMware/VirtualBox</p>
+                            <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem;">
+                                <span class="badge"><i class="fas fa-file-archive"></i> OVA 1.01 GB</span>
+                                <span class="badge"><i class="fas fa-chart-line"></i> Intermedio</span>
+                            </div>
+                            <div class="book-action" style="margin-top: 1.5rem;">
+                                <a href="https://drive.google.com/drive/folders/1PgKbXRTNZ_cMisSqOylE-Bjv_YQp32-s?usp=sharing" target="_blank" style="color: inherit; text-decoration: none;"><i class="fas fa-download"></i> Descargar Máquina</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 
+		Accesos:
+		debian:LabDebian.1987
+		root:X@25Z4r_A89d!.
+	-->
+
+        <!-- Laboratorios -->
+        <div id="laboratorios" class="section-card">
+            <h2 class="section-title"><i class="fas fa-flask"></i> Laboratorios Guiados</h2>
+            <div style="display: flex; align-items: center; gap: 1rem; margin: 1rem 0;">
+                <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #00e5ff, transparent);"></div>
+                <i class="fas fa-code-branch" style="color: #00e5ff;"></i>
+                <div style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #00e5ff, transparent);"></div>
+            </div>
+            <p style="text-align: center; font-size: 1rem; margin-bottom: 1.5rem;"><i class="fas fa-flask" style="color: #00e5ff;"></i> O si lo prefieres, los siguientes laboratorios te guiarán en la construcción de tu propia máquina virtual, permitiéndote practicar la explotación de vulnerabilidades relacionadas con el desbordamiento de búfer en arquitecturas de 64 bits.</p>
+
+            <div class="lab-grid">
+                <a href="Lab_1.html" class="lab-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;"><h3><i class="fas fa-terminal"></i> Laboratorio 1</h3><span class="lab-badge" style="background: #f39c1220; border-color: #f39c12;"><i class="fas fa-chart-line"></i> Principiante</span></div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.75rem 0;"><span class="lab-badge"><i class="fas fa-network-wired"></i> Reverse Shell</span><span class="lab-badge"><i class="fas fa-microchip"></i> x64</span><span class="lab-badge"><i class="fas fa-shield-alt"></i> NX</span></div>
+                    <p><i class="fas fa-bullseye" style="color: #00e5ff; font-size: 0.75rem;"></i> <strong>Objetivo:</strong> Obtención de una shell reversa mediante desbordamiento de búfer en arquitectura x64 con pila ejecutable (NX desactivado).</p>
+                    <div style="margin-top: 1rem;"><div style="background: #1a1d24; border-radius: 10px; height: 4px; overflow: hidden;"><div style="width: 40%; height: 100%; background: #00e5ff; border-radius: 10px;"></div></div><div style="display: flex; justify-content: space-between; margin-top: 0.25rem; font-size: 0.7rem; color: #888;"><span><i class="fas fa-clock"></i> 30-45 min</span><span><i class="fas fa-star"></i> 4.2/5</span></div></div>
+                </a>
+                <a href="Lab_2.html" class="lab-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;"><h3><i class="fas fa-crown"></i> Laboratorio 2</h3><span class="lab-badge" style="background: #e74c3c20; border-color: #e74c3c;"><i class="fas fa-chart-line"></i> Intermedio</span></div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.75rem 0;"><span class="lab-badge"><i class="fas fa-arrow-up"></i> Privilege Escalation</span><span class="lab-badge"><i class="fas fa-link"></i> ROP Chain</span><span class="lab-badge"><i class="fas fa-crown"></i> SUID</span></div>
+		    <p><i class="fas fa-bullseye" style="color: #00e5ff; font-size: 0.75rem;"></i> <strong>Objetivo:</strong> Escalación de privilegios a root mediante ROP Chain y evadiendo NX.</p><br>
+                    <div style="margin-top: 1rem;"><div style="background: #1a1d24; border-radius: 10px; height: 4px; overflow: hidden;"><div style="width: 70%; height: 100%; background: #f39c12; border-radius: 10px;"></div></div><div style="display: flex; justify-content: space-between; margin-top: 0.25rem; font-size: 0.7rem; color: #888;"><span><i class="fas fa-clock"></i> 45-60 min</span><span><i class="fas fa-star"></i> 4.7/5</span></div></div>
+                </a>
+            </div>
+        </div>
+
+
+
+        
+	<!-- El Libro -->
+        <div id="libro" class="section-card">
+            <h2 class="section-title"><i class="fas fa-book"></i> El arte de la explotación de vulnerabilidades en sistemas modernos</h2>
+            <div class="alert alert-info"><i class="fas fa-info-circle"></i> Si después de realizar los laboratorios despertaste tu interés, encendiste tu curiosidad o sentiste el impulso de profundizar en el fascinante mundo de la explotación de vulnerabilidades, te invito a continuar tu aprendizaje con el libro: <strong style="color: #8FFAF1;">El arte de la explotación de vulnerabilidades en sistemas modernos</strong>, una puerta hacia el dominio de técnicas avanzadas y el entendimiento profundo de los ataques en entornos reales.</div>
+            <div class="book-gif"><img src="U.gif" alt="Libro animado" style="width: 100%; max-width: 1000px; display: block; margin: 0 auto; border-radius: 12px;"></div>
+
+   <div class="alert alert-info">
+		    <p style="text-align: justify;">
+		El libro es una obra técnica especializada que analiza la explotación de vulnerabilidades en sistemas Linux y Windows bajo arquitecturas x86 y x64. Expone principios de memoria, ingeniería inversa y depuración para comprender el comportamiento de software vulnerable. Examina mecanismos modernos de protección y su interacción con técnicas de análisis y evaluación de seguridad. Concluye resaltando el carácter formativo, analítico y ético del estudio profesional de la ciberseguridad.
+            
+		<br><br>
+            El lector encontrará diversas técnicas utilizadas para evadir controles de seguridad, tales como ASLR, DEP, canarios de pila e incluso mecanismos perimetrales IDS/IPS y agentes antivirus. A través del estudio de técnicas como ROP chaining y la creación de shellcodes personalizados, se mostrarán métodos empleados para sobrepasar estas defensas. Todo ello se presenta dentro de un marco profesional y ético, con el objetivo de fortalecer la capacidad de mitigación de riesgos y ofrecer al lector una base sólida y práctica para la toma de decisiones sobre las soluciones más adecuadas a implementar.</p>
+		    </div>
+
+
+		    	<br>
+                <p class="book-conclusion" style="text-align: justify;"><strong>Conclusión:</strong> 
+Al finalizar esta obra, no solo habrás aprendido a explotar vulnerabilidades: habrás desarrollado la mentalidad de un verdadero experto en seguridad ofensiva. Entenderás cómo piensa un atacante real, anticiparás sus movimientos y lo más importante, podrás diseñar defensas más sólidas desde el conocimiento profundo de las técnicas de explotación. La ciberseguridad del mañana necesita profesionales que sepan cómo falla el software de hoy. Tú puedes ser uno de ellos.	
+		</p>
+
+
+
+            <a href="get_digital_only.html" style="text-decoration: none; color: inherit;"><div class="book-action"><i class="fas fa-shopping-cart"></i> Adquirir el libro</div></a>
+            <p style="margin-top: 1rem; background: #00e5ff10; padding: 0.5rem; border-radius: 8px;"><i class="fas fa-chalkboard-user" style="color:#00e5ff;"></i> <strong>Este libro nace de 14 años de práctica real:</strong> desde la trinchera del SOC gestionando incidentes, auditando entornos corporativos y diseñando laboratorios para formar nuevos profesionales en explotación de vulnerabilidades, ROP chains y evasión de defensas. Todo desde un enfoque 100% ético y profesional.</p>
+        </div>
+
+
+        <!-- Contenido General del Libro -->
+        <div id="contenido" class="section-card">
+            <h2 class="section-title">
+                <i class="fas fa-list-ul"></i>
+                Contenido general del libro
+            </h2>
+            
+            <div class="resource-grid">
+                <div class="resource-card">
+                    <i class="fas fa-code"></i>
+                    <h4>2. Explotación en Linux (32 bits)</h4>
+                    <p style="font-size:0.8rem">Shellcode, evasión de protecciones, Return-to-libc</p>
+                </div>
+                <div class="resource-card">
+                    <i class="fas fa-network-wired"></i>
+                    <h4>3. Explotación remota</h4>
+                    <p style="font-size:0.8rem">Reverse shells codificadas, evasión perimetral</p>
+                </div>
+                <div class="resource-card">
+                    <i class="fas fa-link"></i>
+                    <h4>4. ROP Chain</h4>
+                    <p style="font-size:0.8rem">Encadenamiento de funciones, elevación de privilegios, leaveret</p>
+                </div>
+                <div class="resource-card">
+                    <i class="fas fa-microchip"></i>
+                    <h4>5. Explotación en Linux (64 bits)</h4>
+                    <p style="font-size:0.8rem">Registros, gadgets, shellcode en 64 bits</p>
+                </div>
+                <div class="resource-card">
+                    <i class="fab fa-windows"></i>
+                    <h4>6. Explotación en Windows</h4>
+                    <p style="font-size:0.8rem">Buffer overflow x86/x64, VirtualProtect, ingeniería inversa</p>
+                </div>
+                <div class="resource-card">
+                    <i class="fas fa-shield-virus"></i>
+                    <h4>7. Evasión de IPS/IDS y Antivirus</h4>
+                    <p style="font-size:0.8rem">Codificación y decodificación de shellcode</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 1.5rem;">Tabla de contenidos detallada</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Capítulo</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>2.2</td><td>Shellcode y explotación de la pila: Técnicas de ejecución controlada</td></tr>
+                    <tr><td>2.3</td><td>Evasión de protecciones de seguridad</td></tr>
+                    <tr><td>2.4</td><td>Return-to-libc</td></tr>
+                    <tr><td>3.1</td><td>Evasión perimetral mediante reverse shells codificados</td></tr>
+                    <tr><td>4.1</td><td>Encadenamiento de llamada a funciones sin argumentos</td></tr>
+                    <tr><td>4.2</td><td>Encadenamiento de llamada a funciones con argumentos</td></tr>
+                    <tr><td>4.3</td><td>Encadenamiento de llamada a funciones del sistema con leaveret</td></tr>
+                    <tr><td>4.4</td><td>Encadenamiento de llamada a funciones del sistema y elevación de privilegios</td></tr>
+                    <tr><td>5.1</td><td>Registros y explotación en arquitecturas de 64 bits</td></tr>
+                    <tr><td>5.2</td><td>Explotación de vulnerabilidades en aplicaciones de código estático</td></tr>
+                    <tr><td>5.2</td><td>Explotación de vulnerabilidades en aplicaciones de código dinámico</td></tr>
+                    <tr><td>5.3.1</td><td>Análisis de gadgets</td></tr>
+                    <tr><td>5.3.2</td><td>Ingeniería inversa y shellcode en 64 bits</td></tr>
+                    <tr><td>6.1</td><td>Explotación de vulnerabilidades de desbordamiento de búfer en Windows para arquitecturas de 32 bits (Sistemas TO)</td></tr>
+                    <tr><td>6.2</td><td>Explotación de vulnerabilidades de desbordamiento de búfer en Windows para arquitecturas de 64 bits</td></tr>
+                    <tr><td>6.2.2</td><td>VirtualProtect: Protecciones, cambios de permisos de memoria e ingeniería inversa</td></tr>
+                    <tr><td>7.1</td><td>Evasión de IPS/IDS</td></tr>
+                    <tr><td>7.2</td><td>Evasión de Antivirus</td></tr>
+                    <tr><td>7.2.1</td><td>Codificación y decodificación de shellcode</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+
+<div id="curso" class="section-card" style="margin-top: 3rem; background: linear-gradient(135deg, #0f1419 0%, #0a0c0f 100%); border: 1px solid #00e5ff;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <h2 class="section-title" style="border-left-color: #00e5ff; margin-bottom: 0;">
+            <i class="fas fa-chalkboard-user" style="color: #00e5ff;"></i> 
+            Curso Avanzado: Explotación de Vulnerabilidades en Sistemas Modernos
+        </h2>
+        <span class="badge" style="background: #00e5ff20; border-color: #00e5ff; color: #00e5ff; font-size: 0.9rem;">
+            <i class="fas fa-clock"></i> 40 horas | <i class="fas fa-users"></i> Cupo mínimo: 5 personas
+        </span>
+    </div>
+
+    <div class="alert alert-info" style="background: rgba(255, 152, 0, 0.1); border-left-color: #00e5ff; color: #00e5ff;">
+        <i class="fas fa-graduation-cap"></i> 
+        <strong>¿Quieres llevar tu aprendizaje al siguiente nivel?</strong> 
+        Este curso es el complemento perfecto. Basado 100% en el contenido del libro, con laboratorios guiados en vivo y soporte directo del autor.
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 2rem; margin-top: 1.5rem;">
+        <div style="flex: 2; min-width: 250px;">
+            <h3 style="color: #00e5ff;"><i class="fas fa-bullhorn"></i> ¿Por qué tomar este curso?</h3>
+            <p style="text-align: justify;">El libro te da la teoría y los ejemplos prácticos por tu cuenta. El curso <strong>acelera tu curva de aprendizaje</strong> con sesiones en vivo, resolución de dudas personalizada, y un enfoque paso a paso de cada técnica de explotación. Ideal para quienes desean dominar el hacking ético ofensivo desde cero hasta nivel intermedio/avanzado en 40 horas.</p>
+            
+            <h3 style="color: #00e5ff; margin-top: 1rem;"><i class="fas fa-list-check"></i> Temario basado en el libro (40h)</h3>
+            <ul style="list-style: none; padding-left: 0;">
+                <li><i class="fas fa-check-circle" style="color: #00e5ff;"></i> <strong>Módulo 1:</strong> Fundamentos de ejecución de instrucciones en computadoras</li>
+                <li><i class="fas fa-check-circle" style="color: #00e5ff;"></i> <strong>Módulo 2:</strong> Explotación de vulnerabilidades en sistemas operativos basados en Linux (32 bits)</li>
+                <li><i class="fas fa-check-circle" style="color: #00e5ff;"></i> <strong>Módulo 3:</strong> Shellcode y explotación</li>
+                <li><i class="fas fa-check-circle" style="color: #00e5ff;"></i> <strong>Módulo 4:</strong> Explotación remota y comunicación inversa</li>
+                <li><i class="fas fa-check-circle" style="color: #00e5ff;"></i> <strong>Módulo 5:</strong> Encadenamiento de funciones y elevación de privilegios mediante ROP</li>
+                <li><i class="fas fa-check-circle" style="color: #00e5ff;"></i> <strong>Módulo 6:</strong> Desarrollo de exploits para sistemas operativos basados en Linux (64 bits)</li>
+                <li><i class="fas fa-check-circle" style="color: #00e5ff;"></i> <strong>Módulo 7:</strong> Explotación de vulnerabilidades en Windows</li>
+                <li><i class="fas fa-check-circle" style="color: #00e5ff;"></i> <strong>Módulo 8:</strong> Mecanismos de evasión: IPS/IDS y Antivirus</li>
+            </ul>
+            <p><i class="fas fa-laptop-code"></i> <strong>Modalidad:</strong> 100% en vivo por Teams + laboratorios prácticos en máquinas virtuales proporcionadas.</p>
+        </div>
+
+        <div style="flex: 1; min-width: 250px; background: #111317; border-radius: 20px; padding: 1.5rem; border: 1px solid #00e5ff;">
+            <div style="text-align: center;">
+                <i class="fas fa-users" style="font-size: 2.5rem; color: #00e5ff;"></i>
+                <div class="alert alert-warning" style="background: rgba(0, 212, 255, 0.15); font-size: 0.85rem;">
+                    <i class="fas fa-users-slash"></i> <strong>Cupo mínimo: 5 personas</strong><br>
+                </div>
+                <ul style="text-align: left; margin-top: 1rem;">
+                    <li><i class="fas fa-check"></i> Certificado digital de finalización</li>
+                    <li><i class="fas fa-check"></i> Acceso a laboratorios</li>
+                    <li><i class="fas fa-check"></i> Soporte directo con el autor</li>
+                    <li><i class="fas fa-check"></i> Material descargable + código fuente</li>
+                </ul>
+		<a href="mailto:ventas-imroot@outlook.com?subject=Solicitud%20de%20información%20-%20Curso%2040h%20Explotación%20de%20Vulnerabilidades%20en%20Sistemas%20Modernos&body=Hola.%0A%0AMe%20interesa%20el%20curso%20especializado%20de%2040%20horas%20basado%20en%20el%20libro%20'El%20arte%20de%20la%20explotación%20de%20vulnerabilidades%20en%20sistemas%20modernos'.%0A%0AMis%20datos%20de%20contacto:%0A- Nombre:%20%0A- Teléfono:%20%0A- Cantidad%20de%20personas%20interesadas:%20%0A%0AQuisiera%20recibir%20más%20información%20sobre%20fechas,%20precio%20y%20forma%20de%20pago.%0A%0AGracias." class="btn-cyan" style="background: #00e5ff; color: #0a0c0f; margin-top: 1rem; display: inline-block; width: 100%; text-align: center; text-decoration: none;">
+    <i class="fas fa-ticket-alt"></i> Solicitar informe / Pre-registro
+</a>
+                <small style="display: block; margin-top: 0.8rem; color: #aaa;">
+                    <i class="fas fa-shield-alt"></i> Pregunta por la próxima apertura.
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="book-divider" style="background: linear-gradient(90deg, transparent, #00e5ff, transparent); margin: 1.5rem 0;"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <i class="fas fa-quote-left" style="color: #00e5ff;"></i>
+            <em style="color: #ccc;">"Este curso es la continuación natural del libro. Lo diseñé para responder las preguntas que me hacen los lectores y guiarlos en tiempo real para que realmente dominen la explotación de vulnerabilidades."</em>
+        </div>
+        <div>
+            <i class="fas fa-calendar-alt" style="color: #00e5ff;"></i> <strong>Próxima apertura:</strong> Cuando se complete el cupo mínimo.<br>
+            <i class="fas fa-clock"></i> <strong>Duración:</strong> 40 horas.
+        </div>
+    </div>
+</div>
+
+
+<div id="autor" class="section-card">
+    <h2 class="section-title">
+        <i class="fas fa-user-secret"></i>
+        Sobre el autor
+    </h2>
+    <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start;">
+        <img src="A1.jpg" alt="FOTO" style="width: 120px; border-radius: 50%; border: 2px solid #00e5ff; flex-shrink: 0;">
+        
+        <div style="flex: 1;">
+            <p>
+                <strong>Arturo Alvarez</strong><br>
+                <strong style="color:#FFFCFC;">Ingeniero en Computación</strong> y 
+                <strong style="color:#FFFCFC;">Maestro en Seguridad de la Información</strong>, 
+                con más de 14 años de experiencia en ciberseguridad. Especialista en seguridad ofensiva y defensiva, 
+                cuenta con certificaciones internacionales como 
+                <strong style="color:#00e5ff;">CISSP, CEH, ISO/IEC 27001 y TISAX</strong>.<br><br>
+                Actualmente lidera un <strong style="color:#00e5ff;">Security Operations Center (SOC)</strong>, 
+                gestionando incidentes en entornos corporativos de alta criticidad. Su experiencia abarca pruebas 
+                de penetración, análisis de malware, criptografía aplicada y gestión de riesgos, así como consultoría 
+                en sistemas de gestión de seguridad de la información y marcos normativos internacionales.<br><br>
+                Comprometido con la formación y la divulgación responsable, participa como mentor en ciberseguridad, 
+                promoviendo prácticas éticas y aplicables al entorno real.<br>
+            </p>
+
+            <p style="margin-top: 0.5rem;">Ha colaborado con organizaciones de diversos sectores en auditorías de seguridad y en el fortalecimiento de sus Sistemas de Gestión de Seguridad de la Información (SGSI). Su experiencia incluye tecnologías líderes como:</p>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0;">
+                <a href="https://www.paloaltonetworks.com/cyberpedia/what-is-extended-security-intelligence-and-automation-management-xsiam" target="_blank" style="background: #1a1d24; padding: 0.2rem 0.6rem; border-radius: 15px; color: #00e5ff; text-decoration: none; font-size: 0.75rem;">
+                    <i class="fas fa-external-link-alt"></i> XSIAM (SIEM+XDR)
+                </a>
+                <a href="https://www.microsoft.com/es-es/security#Products-and-solutions" target="_blank" style="background: #1a1d24; padding: 0.2rem 0.6rem; border-radius: 15px; color: #00e5ff; text-decoration: none; font-size: 0.75rem;">
+                    <i class="fas fa-external-link-alt"></i> Microsoft
+                </a>
+                <a href="https://www.paloaltonetworks.com/" target="_blank" style="background: #1a1d24; padding: 0.2rem 0.6rem; border-radius: 15px; color: #00e5ff; text-decoration: none; font-size: 0.75rem;">
+                    <i class="fas fa-external-link-alt"></i> Palo Alto Networks
+                </a>
+                <a href="https://www.paloaltonetworks.com/cortex" target="_blank" style="background: #1a1d24; padding: 0.2rem 0.6rem; border-radius: 15px; color: #00e5ff; text-decoration: none; font-size: 0.75rem;">
+                    <i class="fas fa-external-link-alt"></i> Cortex XDR
+                </a>
+                <a href="https://www.paloaltonetworks.es/sase/prisma-browser" target="_blank" style="background: #1a1d24; padding: 0.2rem 0.6rem; border-radius: 15px; color: #00e5ff; text-decoration: none; font-size: 0.75rem;">
+                    <i class="fas fa-external-link-alt"></i> PAB
+                </a>
+                <a href="https://www.cyberark.com/" target="_blank" style="background: #1a1d24; padding: 0.2rem 0.6rem; border-radius: 15px; color: #00e5ff; text-decoration: none; font-size: 0.75rem;">
+                    <i class="fas fa-external-link-alt"></i> CyberArk
+                </a>
+                <a href="https://www.forcepoint.com/" target="_blank" style="background: #1a1d24; padding: 0.2rem 0.6rem; border-radius: 15px; color: #00e5ff; text-decoration: none; font-size: 0.75rem;">
+                    <i class="fas fa-external-link-alt"></i> Forcepoint
+                </a>
+                <a href="https://www.rapid7.com/products/insightvm/" target="_blank" style="background: #1a1d24; padding: 0.2rem 0.6rem; border-radius: 15px; color: #00e5ff; text-decoration: none; font-size: 0.75rem;">
+                    <i class="fas fa-external-link-alt"></i> Rapid7
+                </a>
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <a href="https://github.com/AAG233/BOF" target="_blank" style="color:#00e5ff; margin-right: 1rem;">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <a href="https://mx.linkedin.com/in/mcs-arturo-alvarez-gaona-829a48156" target="_blank" style="color:#00e5ff; margin-right: 1rem;">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </a>
+                <span style="background: #00e5ff20; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem;">
+                    <i class="fas fa-graduation-cap"></i>
+                    <a href="https://www.credly.com/badges/a943eda2-4e81-4dc2-b5ed-98ac44ab0a35/linked_in_profile" target="_blank" style="color:#00e5ff; margin-right: 1rem;">CISSP</a>
+                    <a href="https://aspen.eccouncil.org/VerifyBadge?type=certification&a=D/wiD9r7akzNI2dTGqB1oB26H6F+rMs6wXMV6KrVq0Q=" target="_blank" style="color:#00e5ff; margin-right: 1rem;">CEH</a>
+                    <a href="https://aspen.eccouncil.org/VerifyBadge?type=mentor&a=mj9gxPAlYMYWOBzbVHKiMYTkqXRgo0lJde1rHv34nYY=" target="_blank" style="color:#00e5ff; margin-right: 1rem;">Cybersecurity Mentor</a>
+                    M.S.I
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+        <!-- Resumen técnico -->
+        <div id="resumen" class="section-card">
+            <h2 class="section-title"><i class="fas fa-chart-simple"></i> Resumen Técnico de los Laboratorios</h2>
+            <table class="data-table">
+                <thead><tr><th>Laboratorio</th><th>Vulnerabilidad</th><th>Técnica</th><th>Resultado</th></tr></thead>
+                <tbody><tr><td><strong>Lab 1</strong></td><td>Buffer Overflow (pila ejecutable)</td><td>Shellcode + NOP sled + Reverse TCP</td><td>Reverse shell como usuario mortal</td></tr>
+                <tr><td><strong>Lab 2</strong></td><td>Buffer Overflow (NX habilitado, binario SUID)</td><td>ROP Chain + setuid(0) + execve("/bin/sh")</td><td>Shell con privilegios root</td></tr>
+                </tbody>
+            </table>
+            <div class="nav-buttons"><a href="Lab_1.html" class="nav-btn"><i class="fas fa-terminal"></i> Ir al Laboratorio 1</a><a href="Lab_2.html" class="nav-btn"><i class="fas fa-crown"></i> Ir al Laboratorio 2</a></div>
+        </div>
+
+        <!-- Herramientas -->
+        <div id="herramientas" class="section-card">
+            <h2 class="section-title"><i class="fas fa-toolbox"></i> Herramientas Utilizadas en los Laboratorios</h2>
+            <div class="resource-grid">
+                <div class="resource-card"><i class="fas fa-microchip"></i><h4>VirtualBox 7.2.8</h4><p>Debian 12.5 / Kali Linux</p></div>
+                <div class="resource-card"><i class="fas fa-bug"></i><h4>GDB + pwndbg</h4><p>Depuración y análisis</p></div>
+                <div class="resource-card"><i class="fas fa-link"></i><h4>ROPgadget</h4><p>Búsqueda de gadgets ROP</p></div>
+                <div class="resource-card"><i class="fas fa-terminal"></i><h4>msfvenom</h4><p>Generación de shellcode</p></div>
+                <div class="resource-card"><i class="fab fa-python"></i><h4>Python3</h4><p>Exploits personalizados</p></div>
+                <div class="resource-card"><i class="fas fa-shield-alt"></i><h4>Metasploit</h4><p>Multi-handler</p></div>
+            </div>
+        </div>
+
+        <!-- Nota legal -->
+        <div class="alert alert-danger text-center"><center><i class="fas fa-gavel"></i> <strong>AVISO LEGAL:</strong> Este contenido es únicamente con fines educativos y de investigación. La explotación de vulnerabilidades sin autorización explícita es ilegal. Realice estas prácticas exclusivamente en entornos controlados y de su propiedad.</center></div>
+    </div>
+
+
+    <footer class="footer">
+        <p><i class="fas fa-skull"></i> BOF - ExploitLabs | Portal de Laboratorios de Explotación de Vulnerabilidades</p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">© 2026 - El arte de la explotación de vulnerabilidades en sistemas modernos | <span style="color: #00e5ff;">#EthicalHacking #BufferOverflow #ReverseShell #PrivilegeEscalation</span></p>
+    </footer>
+
+    <script>
+        hljs.highlightAll();
+        document.querySelectorAll('pre').forEach(block => {
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.innerHTML = '<i class="fas fa-copy"></i> Copiar';
+            block.style.position = 'relative';
+            block.appendChild(btn);
+            btn.addEventListener('click', () => {
+                const code = block.querySelector('code');
+                const text = code ? code.innerText : block.innerText;
+                navigator.clipboard.writeText(text);
+                btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copiar'; }, 2000);
+            });
+        });
+        // Soporte para móviles: toggle en submenús
+        if (window.innerWidth <= 1024) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const link = item.querySelector('.nav-link');
+                if(link && item.querySelector('.submenu') && !link.href) {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        item.classList.toggle('active');
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

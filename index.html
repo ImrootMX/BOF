@@ -326,9 +326,10 @@
     }
 
     .container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem;
+     max-width: 1200px;     
+     margin: 0 auto;        
+     padding: 2rem;
+     width: 90%;           
     }
 
     .section-card {
@@ -691,6 +692,8 @@
     </ul>
 </nav>
 <br><br>
+
+<div class="container">
 <div id="inicio" class="section-card" style="margin-top: 80px;">
     <div class="imroot-header-wrapper" style="margin-bottom: 2rem;">
         <div class="imroot-premium-header">
@@ -896,13 +899,67 @@
         <!-- Contexto / Introducción -->
         <div id="contexto" class="section-card">
             <h2 class="section-title"><i class="fas fa-globe"></i> Persistencia de las vulnerabilidades de memoria</h2>
-	     <p style="text-align: justify;">En el entorno actual de la ciberseguridad, con frecuencia se publican recomendaciones para abandonar el desarrollo de sistemas y aplicaciones en lenguajes como C y C++, promoviendo en su lugar el uso de lenguajes considerados "más seguros" (<a href="https://www.cpomagazine.com/cyber-security/new-cisa-nsa-joint-report-reiterates-call-for-memory-safe-languages/" target="_blank" style="color: #00e5ff;">CPO Magazine, 2025</a>). Sin embargo, una parte significativa de la infraestructura tecnológica moderna (incluidos los núcleos de sistemas operativos) continúa siendo desarrollado en ensamblador, C y C++. Tanto Windows como Linux se basan en estos lenguajes, por lo que el estudio de las vulnerabilidades asociadas a ellos sigue siendo altamente relevante en la actualidad.</p>
+	    <p style="text-align: justify;">En el entorno actual de la ciberseguridad, con frecuencia se publican recomendaciones para abandonar el desarrollo de sistemas y aplicaciones en lenguajes como C y C++, promoviendo en su lugar el uso de lenguajes considerados "más seguros" (<a href="https://www.cpomagazine.com/cyber-security/new-cisa-nsa-joint-report-reiterates-call-for-memory-safe-languages/" target="_blank" style="color: #00e5ff;">CPO Magazine, 2025</a>). Sin embargo, una parte significativa de la infraestructura tecnológica moderna (incluidos los núcleos de sistemas operativos) continúa siendo desarrollado en ensamblador, C y C++. Tanto Windows como Linux se basan en estos lenguajes, por lo que el estudio de las vulnerabilidades asociadas a ellos sigue siendo altamente relevante en la actualidad. <br><br>Como ejemplo podemos mencionar los siguientes:</p>
+
+	     <br><br>
+
+<!-- Vulnerabilidad: CVE-2025-32756 (Fortinet) -->
+<div id="cve-2025-32756" class="section-card" style="border-left: 4px solid #f39c12;">
+    <h2 class="section-title">
+        <i class="fas fa-bug" style="color: #f39c12;"></i>
+        CVE-2025-32756 - Fortinet Stack Buffer Overflow
+        <span style="margin-left: auto; font-size: 0.8rem; background: #f39c1220; padding: 0.2rem 0.8rem; border-radius: 20px;">CVSS 8.6 HIGH</span>
+    </h2>
+    
+    <p><strong>Afecta:</strong> FortiOS, FortiProxy, FortiManager (múltiples versiones) | <strong>Vector:</strong> Red | <strong>Auth:</strong> No requerida</p>
+    
+    <div class="alert alert-warning" style="margin: 1rem 0; padding: 0.75rem;">
+        <i class="fas fa-skull"></i> <strong>Impacto:</strong> Ejecución remota de código (RCE). Vulnerabilidad de desbordamiento de búfer en la pila descubierta en mayo de 2025, permite a un atacante no autenticado ejecutar código arbitrario en sistemas Fortinet afectados.
+    </div>
+    
+    <div class="terminal" style="margin: 0;">
+        <span class="terminal-prompt">$</span> python3 fortinet_exploit.py 10.0.0.10 -p 443<br>
+        <span class="terminal-output">[+] RCE successful. Shell obtained.</span>
+    </div>
+    
+    <div style="margin-top: 1rem; font-size: 0.85rem;">
+        <i class="fas fa-check-circle" style="color: #2ecc71;"></i> <strong>Parche:</strong> Mayo 2025 (Fortinet PSIRT)
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <i class="fas fa-shield-alt"></i> <strong>Mitigación:</strong> Actualizar a versiones parcheadas / Restringir acceso administrativo
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <i class="fas fa-external-link-alt"></i> <a href="https://nvd.nist.gov/vuln/detail/CVE-2025-32756" target="_blank" style="color: #f39c12;">NVD Entry</a>
+    </div>
+</div>
+
+<!-- Vulnerabilidad: CVE-2026-41089 (Netlogon) -->
+<div id="cve-2026-41089" class="section-card" style="border-left: 4px solid #e74c3c;">
+    <h2 class="section-title">
+        <i class="fas fa-bug" style="color: #e74c3c;"></i>
+        CVE-2026-41089 - Netlogon Stack Buffer Overflow
+        <span style="margin-left: auto; font-size: 0.8rem; background: #e74c3c20; padding: 0.2rem 0.8rem; border-radius: 20px;">CVSS 9.8 CRITICAL</span>
+    </h2>
+    
+    <p><strong>Afecta:</strong> Windows Server 2012-2025 (sin parche) | <strong>Vector:</strong> UDP 389 (CLDAP) | <strong>Auth:</strong> No requerida</p>
+    
+    <div class="alert alert-danger" style="margin: 1rem 0; padding: 0.75rem;">
+        <i class="fas fa-skull"></i> <strong>Impacto:</strong> Denegación de servicio (reboot del DC) / Posible RCE. La función <code>NetpLogonPutUnicodeString</code> malinterpreta la longitud de strings Unicode, desbordando el buffer de 528 bytes.
+    </div>
+    
+    <div class="terminal" style="margin: 0;">
+        <span class="terminal-prompt">$</span> python3 cve-2026-41089.py 10.0.0.10 domain.local -l 200<br>
+        <span class="terminal-output">[!] LSASS crashed. DC rebooting in ~60s.</span>
+    </div>
+    
+    <div style="margin-top: 1rem; font-size: 0.85rem;">
+        <i class="fas fa-check-circle" style="color: #2ecc71;"></i> <strong>Parche:</strong> Mayo 2026 (Microsoft)
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <i class="fas fa-shield-alt"></i> <strong>Mitigación:</strong> Bloquear UDP 389 en firewall
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <i class="fas fa-external-link-alt"></i> <a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41089" target="_blank" style="color: #e74c3c;">NVD Entry</a>
+    </div>
+</div>
 
 
-            <div class="alert alert-warning">
-                <i class="fas fa-bug"></i>
-                <strong>CVE-2025-32756:</strong> Como ejemplo reciente, puede citarse la vulnerabilidad <a href="https://nvd.nist.gov/vuln/detail/CVE-2025-32756" target="_blank" style="color: #00e5ff;">CVE-2025-32756</a>, descubierta en mayo de 2025, la cual afecta a múltiples productos de Fortinet y permite la ejecución remota de código por parte de actores maliciosos. Dicha vulnerabilidad se encuentra relacionada con desbordamientos de búfer basados en la pila.
-            </div>
         </div>
 
         <!-- Máquina Virtual CTF -->
@@ -1238,8 +1295,8 @@ Al finalizar esta obra, no solo habrás aprendido a explotar vulnerabilidades: h
 
         <!-- Nota legal -->
         <div class="alert alert-danger text-center"><center><i class="fas fa-gavel"></i> <strong>AVISO LEGAL:</strong> Este contenido es únicamente con fines educativos y de investigación. La explotación de vulnerabilidades sin autorización explícita es ilegal. Realice estas prácticas exclusivamente en entornos controlados y de su propiedad.</center></div>
-    </div>
 
+	</div>
 
     <footer class="footer">
         <p><i class="fas fa-skull"></i> BOF - ExploitLabs | Portal de Laboratorios de Explotación de Vulnerabilidades</p>

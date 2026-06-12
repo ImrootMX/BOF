@@ -642,6 +642,65 @@
             padding: 1rem !important;
         }
     }
+
+
+    /* Sidebar izquierdo para el libro */
+.book-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 100px;
+    align-self: flex-start;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    margin-right: 2rem;
+}
+
+.price-badge {
+    background: rgba(0, 229, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.8rem;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.price-tag {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #00e5ff;
+    margin: 0.3rem 0;
+}
+
+/* Layout de dos columnas para la página principal */
+.index-layout {
+    display: flex;
+    gap: 2rem;
+    position: relative;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.index-main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Responsive: en móvil el sidebar va abajo */
+@media (max-width: 1024px) {
+    .index-layout {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    .book-sidebar {
+        width: 100%;
+        position: static;
+        margin-right: 0;
+        margin-top: 2rem;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -691,9 +750,37 @@
         </li>
     </ul>
 </nav>
-<br><br>
+<br>
 
-<div class="container">
+<!--
+<div class="container">-->
+
+	<br><br><br><br>
+<div class="index-layout">
+    <!-- SIDEBAR IZQUIERDO -->
+    <aside class="book-sidebar">
+        <div class="book-card">
+	<br><br>
+            <div class="book-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <h3>El arte de la explotación de vulnerabilidades en sistemas modernos</h3>
+	    <p style="text-align: justify;">Si después de realizar los laboratorios despertaste tu interés, encendiste tu curiosidad o sentiste el impulso de profundizar en el fascinante mundo de la explotación de vulnerabilidades, te invito a continuar tu aprendizaje con el libro: <strong style="color: #FFFFFF;">El arte de la explotación de vulnerabilidades en sistemas modernos</strong>, una puerta hacia el dominio de técnicas avanzadas y el entendimiento profundo de los ataques en entornos reales.</p>
+                    <div class="book-gif"><img src="U.gif" alt="Libro animado" style="width: 100%; max-width: 350px; display: block; margin: 0 auto; border-radius: 12px;"></div>
+                    <a href="get_digital_only.html" style="text-decoration: none; color: inherit;"><div class="book-action"><i class="fas fa-shopping-cart"></i> Adquirir el libro</div></a>
+                    <div class="book-divider"></div>
+                    <h4><i class="fas fa-shield-alt"></i> Contenido destacado:</h4>
+                    <ul><li>✓ Principios de memoria, ingeniería inversa y depuración</li><li>✓ Mecanismos modernos de protección (ASLR, DEP, canarios de pila)</li><li>✓ Técnicas de evasión: ROP chaining, shellcodes personalizados</li><li>✓ Evasión perimetral IDS/IPS y Antivirus</li><li>✓ Explotación remota y comunicación inversa</li><li>✓ Encadenamiento de funciones y elevación de privilegios</li></ul>
+                    <div class="book-divider"></div>
+                    <p class="book-conclusion" style="text-align: justify;"><strong>Conclusión:</strong> Al finalizar esta obra, no solo habrás aprendido a explotar vulnerabilidades: habrás desarrollado la mentalidad de un verdadero experto en seguridad ofensiva.</p>
+                    <a href="get_digital_only.html" style="text-decoration: none; color: inherit;"><div class="book-action"><i class="fas fa-shopping-cart"></i> Adquirir el libro</div></a>
+
+            
+        </div>
+    </aside>
+
+
+<main class="index-main-content">
 <div id="inicio" class="section-card" style="margin-top: 80px;">
     <div class="imroot-header-wrapper" style="margin-bottom: 2rem;">
         <div class="imroot-premium-header">
@@ -893,6 +980,8 @@
             padding: 0.3rem 0.7rem;
         }
     }
+
+
 </style>
 
 
@@ -971,7 +1060,7 @@
                 <div style="display: flex; justify-content: center; margin: 2rem 0;">
                     <div class="lab-card" style="max-width: 500px; background: linear-gradient(135deg, #00e5ff08 0%, #111317 100%); border: 1px solid #00e5ff40;">
                         <div style="position: relative;">
-                            <span style="position: absolute; top: -10px; right: -10px; background: #00e5ff; color: #0a0c0f; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: bold;"><i class="fas fa-download"></i> FREE</span>
+                            <span style="position: absolute; top: -10px; right: -10px; background: #00e5ff; color: #0a0c0f; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: bold;"><i class="fas fa-download"></i> FREE </span>
                             <h3><i class="fas fa-user-secret"></i> Máquina Virtual CTF</h3>
                             <span class="lab-badge">Descarga Directa</span>
                             <span class="lab-badge" style="background: #00e5ff20;">x64</span>
@@ -1296,7 +1385,10 @@ Al finalizar esta obra, no solo habrás aprendido a explotar vulnerabilidades: h
         <!-- Nota legal -->
         <div class="alert alert-danger text-center"><center><i class="fas fa-gavel"></i> <strong>AVISO LEGAL:</strong> Este contenido es únicamente con fines educativos y de investigación. La explotación de vulnerabilidades sin autorización explícita es ilegal. Realice estas prácticas exclusivamente en entornos controlados y de su propiedad.</center></div>
 
-	</div>
+</main>
+</div>
+
+	<!--</div>-->
 
     <footer class="footer">
         <p><i class="fas fa-skull"></i> BOF - ExploitLabs | Portal de Laboratorios de Explotación de Vulnerabilidades</p>

